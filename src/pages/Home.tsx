@@ -75,16 +75,6 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           className="py-10 md:py-14 text-center"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-600 rounded-full text-sm font-medium mb-5"
-          >
-            <Sparkles size={16} />
-            AI 驱动的个性化疗愈体验
-          </motion.div>
-          
           <h1 className="text-3xl md:text-5xl font-bold text-neutral-900 mb-4 leading-tight">
             每一种情绪
             <br />
