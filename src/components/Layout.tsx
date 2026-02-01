@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navigation from './Navigation';
 import FloatingBubbles from './FloatingBubbles';
+import AnimatedBackground from './AnimatedBackground';
 
 const Layout = () => {
   const location = useLocation();
@@ -9,19 +10,10 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* 动态渐变背景 */}
-      <div className="fixed inset-0 -z-10">
-        {/* 基础渐变 */}
-        <div 
-          className="absolute inset-0 animate-gradient"
-          style={{
-            background: 'linear-gradient(-45deg, #f0f9ff, #e0f2fe, #dbeafe, #ecfeff, #f0f9ff)',
-            backgroundSize: '400% 400%',
-          }}
-        />
-      </div>
+      {/* 增强的动画背景 */}
+      <AnimatedBackground />
 
-      {/* 背景装饰 */}
+      {/* 背景装饰光晕 */}
       <FloatingBubbles />
       
       {/* 主内容区 */}
