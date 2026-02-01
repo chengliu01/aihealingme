@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, Compass, Sparkles, Calendar, User } from 'lucide-react';
+import { Home, Compass, Sparkles, Calendar, User, Play, Pause, SkipBack, SkipForward, X } from 'lucide-react';
 import { useStore } from '@/store';
 
 const navItems = [
@@ -12,7 +12,7 @@ const navItems = [
 ];
 
 const Navigation = () => {
-  const { currentlyPlaying, isPlaying } = useStore();
+  const { currentlyPlaying, isPlaying, setIsPlaying, setCurrentlyPlaying, audios } = useStore();
 
   return (
     <>
@@ -79,62 +79,117 @@ const Navigation = () => {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-24 left-4 right-4 z-40"
         >
-          <NavLink to={`/audio/${currentlyPlaying.id}`}>
-            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg shadow-neutral-200/50 p-3 border border-white/50 flex items-center gap-3">
-              {/* 封面 */}
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
-                <img 
-                  src={currentlyPlaying.coverUrl} 
-                  alt={currentlyPlaying.title}
-                  className="w-full h-full object-cover"
-                />
-                {isPlaying && (
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    <div className="flex gap-0.5">
-                      <motion.div 
-                        className="w-0.5 h-3 bg-white rounded-full"
-                        animate={{ height: [12, 6, 12] }}
-                        transition={{ duration: 0.5, repeat: Infinity }}
-                      />
-                      <motion.div 
-                        className="w-0.5 h-4 bg-white rounded-full"
-                        animate={{ height: [16, 8, 16] }}
-                        transition={{ duration: 0.5, repeat: Infinity, delay: 0.1 }}
-                      />
-                      <motion.div 
-                        className="w-0.5 h-2 bg-white rounded-full"
-                        animate={{ height: [8, 14, 8] }}
-                        transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
-                      />
-                    </div>
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg shadow-neutral-200/50 p-3 border border-white/50 flex items-center gap-3">
+            {/* 封面 - 点击跳转到播放页 */}
+            <NavLink to={`/audio/${currentlyPlaying.id}`} className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+              <img 
+                src={currentlyPlaying.coverUrl} 
+                alt={currentlyPlaying.title}
+                className="w-full h-full object-cover"
+              />
+              {isPlaying && (
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                  <div className="flex gap-0.5">
+                    <motion.div 
+                      className="w-0.5 h-3 bg-white rounded-full"
+                      animate={{ height: [12, 6, 12] }}
+                      transition={{ duration: 0.5, repeat: Infinity }}
+                    />
+                    <motion.div 
+                      className="w-0.5 h-4 bg-white rounded-full"
+                      animate={{ height: [16, 8, 16] }}
+                      transition={{ duration: 0.5, repeat: Infinity, delay: 0.1 }}
+                    />
+                    <motion.div 
+                      className="w-0.5 h-2 bg-white rounded-full"
+                      animate={{ height: [8, 14, 8] }}
+                      transition={{ duration: 0.5, repeat: Infinity, delay: 0.2 }}
+                    />
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </NavLink>
 
-              {/* 信息 */}
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-neutral-900 truncate">
-                  {currentlyPlaying.title}
-                </h4>
-                <p className="text-xs text-neutral-500 truncate">
-                  {currentlyPlaying.author.name}
-                </p>
-              </div>
+            {/* 信息 - 点击跳转到播放页 */}
+            <NavLink to={`/audio/${currentlyPlaying.id}`} className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-neutral-900 truncate">
+                {currentlyPlaying.title}
+              </h4>
+              <p className="text-xs text-neutral-500 truncate">
+                {currentlyPlaying.author.name}
+              </p>
+            </NavLink>
 
-              {/* 播放状态 */}
-              <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+            {/* 控制按钮组 */}
+            <div className="flex items-center gap-1">
+              {/* 上一个按钮 */}
+              <motion.button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const currentIndex = audios.findIndex(a => a.id === currentlyPlaying.id);
+                  const prevIndex = currentIndex > 0 ? currentIndex - 1 : audios.length - 1;
+                  setCurrentlyPlaying(audios[prevIndex]);
+                  setIsPlaying(true);
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+              >
+                <SkipBack size={18} />
+              </motion.button>
+
+              {/* 暂停/播放按钮 */}
+              <motion.button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsPlaying(!isPlaying);
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 hover:bg-violet-200 transition-colors"
+              >
                 {isPlaying ? (
-                  <motion.div
-                    className="w-2 h-2 bg-violet-600 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
+                  <Pause size={18} fill="currentColor" />
                 ) : (
-                  <div className="w-0 h-0 border-t-4 border-b-4 border-l-4 border-transparent border-l-violet-600 ml-0.5" />
+                  <Play size={18} fill="currentColor" className="ml-0.5" />
                 )}
-              </div>
+              </motion.button>
+
+              {/* 下一个按钮 */}
+              <motion.button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const currentIndex = audios.findIndex(a => a.id === currentlyPlaying.id);
+                  const nextIndex = currentIndex < audios.length - 1 ? currentIndex + 1 : 0;
+                  setCurrentlyPlaying(audios[nextIndex]);
+                  setIsPlaying(true);
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
+              >
+                <SkipForward size={18} />
+              </motion.button>
+
+              {/* 关闭按钮 */}
+              <motion.button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentlyPlaying(null);
+                  setIsPlaying(false);
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
+              >
+                <X size={18} />
+              </motion.button>
             </div>
-          </NavLink>
+          </div>
         </motion.div>
       )}
     </>
