@@ -11,7 +11,7 @@ const Create = () => {
       id: 'single',
       title: '此刻疗愈',
       subtitle: 'INSTANT HEALING',
-      description: 'AI 根据你此刻的状态，即时生成专属疗愈音频。通过深度情绪识别与分析，为你量身定制最适合当下的音频内容。',
+      description: '根据你此刻的状态，即时生成专属疗愈音频。AI 疗愈师通过深度情绪识别与分析，为你量身定制最适合当下的音频内容。',
       icon: Sparkles,
       gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
       lightGradient: 'from-violet-50/80 via-purple-50/60 to-fuchsia-50/80',

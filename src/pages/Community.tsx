@@ -69,10 +69,10 @@ const Community = () => {
         >
           <div>
             <h1 className="text-[26px] font-semibold text-neutral-800 tracking-tight">
-              社区发现
+              社区疗愈频道
             </h1>
             <p className="text-[14px] text-neutral-400 mt-1">
-              探索精选的疗愈音频，找到内心的平静
+              发现更多疗愈内容，与他人分享你的疗愈体验
             </p>
           </div>
           
