@@ -40,6 +40,7 @@ export interface Comment {
   author: User;
   createdAt: string;
   likes: number;
+  isLikedByCurrentUser?: boolean;
 }
 
 export interface HealingPlan {

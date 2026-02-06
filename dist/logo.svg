@@ -1,9 +1,97 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4ade80"/>
-      <stop offset="100%" style="stop-color:#38bdf8"/>
+    <!-- 主渐变 -->
+    <linearGradient id="psiGradientLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
     </linearGradient>
+    
+    <!-- 光晕 -->
+    <radialGradient id="glowGradientLogo">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0" />
+    </radialGradient>
+    
+    <!-- 阴影 -->
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <path d="M16 28.35l-1.45-1.32C8.4 20.36 5 16.28 5 11.5 5 7.42 7.42 5 11.5 5c1.74 0 3.41.81 4.5 2.09C17.09 5.81 18.76 5 20.5 5 24.58 5 27 7.42 27 11.5c0 4.78-3.4 8.86-8.55 13.54L16 28.35z" fill="url(#gradient)"/>
+  
+  <!-- 背景圆形光晕 -->
+  <circle cx="60" cy="60" r="55" fill="url(#glowGradientLogo)"/>
+  
+  <!-- Ψ 符号主体 -->
+  <g transform="translate(60, 60)" filter="url(#shadow)">
+    <!-- 中央竖线 -->
+    <rect x="-4" y="-10" width="8" height="52" rx="4" fill="url(#psiGradientLogo)"/>
+    
+    <!-- 左侧弧线 -->
+    <path d="M -22,-10 Q -26,-22 -18,-30 Q -10,-34 -4,-26 L -4,-10" 
+          stroke="url(#psiGradientLogo)" 
+          stroke-width="8" 
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+    
+    <!-- 右侧弧线 -->
+    <path d="M 22,-10 Q 26,-22 18,-30 Q 10,-34 4,-26 L 4,-10" 
+          stroke="url(#psiGradientLogo)" 
+          stroke-width="8" 
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+    
+    <!-- 顶部装饰点 -->
+    <circle cx="-18" cy="-32" r="3" fill="url(#psiGradientLogo)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="18" cy="-32" r="3" fill="url(#psiGradientLogo)" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+    </circle>
+    
+    <!-- 中央装饰点 -->
+    <circle cx="0" cy="-36" r="2.5" fill="url(#psiGradientLogo)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite" begin="1s"/>
+    </circle>
+  </g>
+  
+  <!-- 底部心形装饰 -->
+  <g opacity="0.5">
+    <path d="M 60,95 L 52,87 C 44,79 36,71 36,63 C 36,57 39,54 44,54 C 48,54 52,56 55,59 C 56,60 57,60 58,59 C 61,56 65,54 69,54 C 74,57 77,60 77,66 C 77,74 69,82 61,90 L 52,90 Z" 
+          fill="url(#psiGradientLogo)" 
+          opacity="0.3"/>
+  </g>
+  
+  <!-- 音频波形装饰 -->
+  <g opacity="0.4" transform="translate(35, 105)">
+    <rect x="0" y="3" width="2.5" height="4" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="4;8;4" dur="0.8s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="5" y="0" width="2.5" height="10" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="10;14;10" dur="1s" repeatCount="indefinite" begin="0.2s"/>
+    </rect>
+    <rect x="10" y="2" width="2.5" height="6" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="6;10;6" dur="0.9s" repeatCount="indefinite" begin="0.1s"/>
+    </rect>
+    
+    <rect x="30" y="2" width="2.5" height="6" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="6;10;6" dur="0.9s" repeatCount="indefinite" begin="0.3s"/>
+    </rect>
+    <rect x="35" y="0" width="2.5" height="10" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="10;14;10" dur="1s" repeatCount="indefinite" begin="0.4s"/>
+    </rect>
+    <rect x="40" y="3" width="2.5" height="4" rx="1.25" fill="url(#psiGradientLogo)">
+      <animate attributeName="height" values="4;8;4" dur="0.8s" repeatCount="indefinite" begin="0.5s"/>
+    </rect>
+  </g>
 </svg>

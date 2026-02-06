@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader2, Clock, Play, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Play, Check } from 'lucide-react';
 import { formatDuration } from '@/utils';
 import { useStore } from '@/store';
 import { emotionOptions, scenarioOptions, durationOptions, generateId } from '@/utils';
@@ -24,17 +24,13 @@ const SingleHealing = () => {
 
   const handleEmotionToggle = (value: string) => {
     setSelectedEmotions(prev => 
-      prev.includes(value) 
-        ? prev.filter(e => e !== value)
-        : [...prev, value]
+      prev.includes(value) ? prev.filter(e => e !== value) : [...prev, value]
     );
   };
 
   const handleScenarioToggle = (value: string) => {
     setSelectedScenarios(prev => 
-      prev.includes(value) 
-        ? prev.filter(s => s !== value)
-        : [...prev, value]
+      prev.includes(value) ? prev.filter(s => s !== value) : [...prev, value]
     );
   };
 
@@ -42,13 +38,12 @@ const SingleHealing = () => {
     if (!input.trim() && selectedEmotions.length === 0) return;
     
     setStep('analyzing');
-    
     await new Promise(resolve => setTimeout(resolve, 2000));
     setStep('generating');
     
     for (let i = 0; i <= 100; i += 10) {
       setProgress(i);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 400));
     }
     
     const emotionLabels = selectedEmotions
@@ -81,29 +76,36 @@ const SingleHealing = () => {
     setStep('complete');
   };
 
+  const easeOut = [0.25, 0.1, 0.25, 1];
+
   const renderInputStep = () => (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto"
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.4, ease: easeOut }}
+      className="max-w-lg mx-auto"
     >
       {/* 情绪选择 */}
       <div className="mb-8">
-        <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          你当前的情绪状态
+        <label className="block text-[13px] font-medium text-neutral-500 mb-3">
+          当前情绪
         </label>
         <div className="flex flex-wrap gap-2">
-          {emotionOptions.map((emotion) => (
+          {emotionOptions.map((emotion, i) => (
             <motion.button
               key={emotion.value}
               onClick={() => handleEmotionToggle(emotion.value)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: i * 0.02 }}
+              whileTap={{ scale: 0.96 }}
               className={`
-                px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
+                px-4 py-2 rounded-full text-[13px] font-medium
+                transition-all duration-300 ease-out
                 ${selectedEmotions.includes(emotion.value)
-                  ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-md'
-                  : 'bg-white/60 text-neutral-600 hover:bg-white border border-neutral-200/50'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-white/60 text-neutral-600 border border-black/[0.04] hover:bg-white/80'
                 }
               `}
             >
@@ -115,21 +117,24 @@ const SingleHealing = () => {
 
       {/* 场景选择 */}
       <div className="mb-8">
-        <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          是什么让你产生这些情绪？
+        <label className="block text-[13px] font-medium text-neutral-500 mb-3">
+          触发原因
         </label>
         <div className="flex flex-wrap gap-2">
-          {scenarioOptions.map((scenario) => (
+          {scenarioOptions.map((scenario, i) => (
             <motion.button
               key={scenario.value}
               onClick={() => handleScenarioToggle(scenario.value)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 + i * 0.02 }}
+              whileTap={{ scale: 0.96 }}
               className={`
-                px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
+                px-4 py-2 rounded-full text-[13px] font-medium
+                transition-all duration-300 ease-out
                 ${selectedScenarios.includes(scenario.value)
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
-                  : 'bg-white/60 text-neutral-600 hover:bg-white border border-neutral-200/50'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-white/60 text-neutral-600 border border-black/[0.04] hover:bg-white/80'
                 }
               `}
             >
@@ -139,222 +144,198 @@ const SingleHealing = () => {
         </div>
       </div>
 
-      {/* 强度滑块 */}
+      {/* 强度 */}
       <div className="mb-8">
-        <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          情绪强度
-        </label>
-        <div className="bg-white/60 rounded-2xl p-5 border border-neutral-200/50">
-          <input
-            type="range"
-            min="1"
-            max="10"
-            value={intensity}
-            onChange={(e) => setIntensity(Number(e.target.value))}
-            className="w-full h-2 bg-neutral-200 rounded-full appearance-none cursor-pointer"
-            style={{ 
-              background: `linear-gradient(to right, #8b5cf6 0%, #a855f7 ${intensity * 10}%, #e5e5e5 ${intensity * 10}%, #e5e5e5 100%)` 
-            }}
-          />
-          <div className="flex justify-between mt-3 text-sm text-neutral-500">
-            <span>轻微</span>
-            <span className="font-semibold text-violet-600 text-lg">{intensity}</span>
-            <span>强烈</span>
-          </div>
+        <div className="flex justify-between items-center mb-3">
+          <label className="text-[13px] font-medium text-neutral-500">强度</label>
+          <span className="text-[15px] font-semibold text-neutral-800">{intensity}</span>
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="10"
+          value={intensity}
+          onChange={(e) => setIntensity(Number(e.target.value))}
+          className="w-full h-1 bg-neutral-200 rounded-full appearance-none cursor-pointer"
+          style={{ 
+            background: `linear-gradient(to right, #171717 0%, #171717 ${intensity * 10}%, #e5e5e5 ${intensity * 10}%, #e5e5e5 100%)` 
+          }}
+        />
+        <div className="flex justify-between mt-2 text-[11px] text-neutral-400">
+          <span>轻微</span>
+          <span>强烈</span>
         </div>
       </div>
 
-      {/* 详细描述 */}
+      {/* 描述 */}
       <div className="mb-8">
-        <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          详细描述你的感受（可选）
+        <label className="block text-[13px] font-medium text-neutral-500 mb-3">
+          描述你的感受
         </label>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="请描述你当前的状态，AI 疗愈师会更好地理解你..."
-          className="input-clean min-h-[120px] resize-none"
+          placeholder="可选：更详细的描述能让 AI 更好地理解你..."
+          className="w-full px-4 py-3 bg-white/60 border border-black/[0.04] rounded-2xl text-[14px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:bg-white/80 transition-all duration-200 min-h-[100px] resize-none"
         />
       </div>
 
-      {/* 时长选择 */}
-      <div className="mb-8">
-        <label className="block text-sm font-semibold text-neutral-700 mb-3">
-          期望的疗愈时长
+      {/* 时长 */}
+      <div className="mb-10">
+        <label className="block text-[13px] font-medium text-neutral-500 mb-3">
+          疗愈时长
         </label>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex gap-2">
           {durationOptions.map((opt) => (
             <motion.button
               key={opt.value}
               onClick={() => setSelectedDuration(opt.value)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               className={`
-                flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-300
+                flex-1 py-3 rounded-xl text-[13px] font-medium
+                transition-all duration-300 ease-out
                 ${selectedDuration === opt.value
-                  ? 'bg-neutral-900 text-white shadow-md'
-                  : 'bg-white/60 text-neutral-600 hover:bg-white border border-neutral-200/50'
+                  ? 'bg-neutral-900 text-white'
+                  : 'bg-white/60 text-neutral-600 border border-black/[0.04]'
                 }
               `}
             >
-              <Clock size={16} />
               {opt.label}
             </motion.button>
           ))}
         </div>
       </div>
 
-      {/* 提交按钮 */}
+      {/* 提交 */}
       <motion.button
         onClick={handleSubmit}
         disabled={selectedEmotions.length === 0 && !input.trim()}
-        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-neutral-900 text-white text-[15px] font-medium rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
       >
-        开始 AI 分析
+        开始生成
       </motion.button>
     </motion.div>
   );
 
-  const renderAnalyzingStep = () => (
+  const renderProcessingStep = () => (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center py-20"
+      exit={{ opacity: 0 }}
+      className="flex flex-col items-center justify-center py-24"
     >
-      <div className="relative w-28 h-28 mb-8">
-        <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400/20 to-purple-400/20"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute inset-2 rounded-full bg-gradient-to-r from-violet-400/30 to-purple-400/30"
-          animate={{ scale: [1.1, 1.4, 1.1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-        />
-        <motion.div
-          className="absolute inset-4 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center shadow-lg shadow-violet-500/30"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <Loader2 size={28} className="text-white animate-spin" />
-        </motion.div>
-      </div>
-      <h3 className="text-lg font-semibold text-neutral-900 mb-2">AI 正在分析你的情绪...</h3>
-      <p className="text-neutral-500">识别情绪模式，匹配最佳疗愈方案</p>
-    </motion.div>
-  );
-
-  const renderGeneratingStep = () => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center py-20"
-    >
-      <div className="w-72 mb-8">
-        <div className="h-3 bg-neutral-200/50 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full"
-            style={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-        <p className="text-center text-neutral-500 mt-4 font-medium">{progress}% - 生成专属疗愈音频</p>
-      </div>
+      <motion.div
+        className="w-16 h-16 rounded-2xl bg-neutral-900 flex items-center justify-center mb-6"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+      >
+        <Loader2 size={24} className="text-white" />
+      </motion.div>
+      
+      {step === 'analyzing' ? (
+        <>
+          <h3 className="text-[17px] font-semibold text-neutral-800 mb-2">分析情绪中</h3>
+          <p className="text-[14px] text-neutral-400">识别情绪模式...</p>
+        </>
+      ) : (
+        <>
+          <h3 className="text-[17px] font-semibold text-neutral-800 mb-4">生成音频</h3>
+          <div className="w-48">
+            <div className="h-1 bg-neutral-200 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-neutral-900 rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ duration: 0.2 }}
+              />
+            </div>
+            <p className="text-center text-[12px] text-neutral-400 mt-3">{progress}%</p>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 
   const renderCompleteStep = () => (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="max-w-md mx-auto text-center"
+      transition={{ duration: 0.4, ease: easeOut }}
+      className="max-w-sm mx-auto text-center py-12"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mx-auto mb-6"
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="w-16 h-16 rounded-2xl bg-neutral-900 flex items-center justify-center mx-auto mb-6"
       >
-        <CheckCircle size={40} className="text-violet-600" />
+        <Check size={28} className="text-white" strokeWidth={2.5} />
       </motion.div>
       
-      <h2 className="text-xl font-bold text-neutral-900 mb-2">疗愈音频已生成</h2>
-      <p className="text-neutral-500 mb-8">你的专属疗愈音频已经准备好了</p>
+      <h2 className="text-[20px] font-semibold text-neutral-800 mb-2">生成完成</h2>
+      <p className="text-[14px] text-neutral-400 mb-8">专属疗愈音频已就绪</p>
 
       {generatedAudio && (
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 mb-6 text-left shadow-lg shadow-neutral-200/30 border border-white/50">
+        <motion.div 
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/[0.04] mb-8 text-left"
+        >
           <div className="flex gap-4">
-            <div className="relative">
-              <img
-                src={generatedAudio.coverUrl}
-                alt={generatedAudio.title}
-                className="w-24 h-24 object-cover rounded-xl shadow-md"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl opacity-0 hover:opacity-100 transition-opacity">
-                <Play size={24} className="text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-neutral-900 mb-1">{generatedAudio.title}</h3>
-              <p className="text-xs text-neutral-500 mb-2">{formatDuration(generatedAudio.duration)}</p>
-              <div className="flex flex-wrap gap-1">
-                {generatedAudio.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 bg-violet-100 text-violet-600 rounded-md">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+            <img
+              src={generatedAudio.coverUrl}
+              alt={generatedAudio.title}
+              className="w-16 h-16 object-cover rounded-xl"
+            />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-[14px] text-neutral-800 truncate mb-1">{generatedAudio.title}</h3>
+              <p className="text-[12px] text-neutral-400">{formatDuration(generatedAudio.duration)}</p>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="space-y-3">
         <motion.button 
           onClick={() => generatedAudio && navigate(`/audio/${generatedAudio.id}`)}
-          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full btn-primary flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-neutral-900 text-white text-[14px] font-medium rounded-2xl flex items-center justify-center gap-2"
         >
-          <Play size={18} />
-          立即播放
+          <Play size={16} fill="currentColor" />
+          播放
         </motion.button>
         <motion.button 
-          onClick={() => navigate('/profile')}
-          whileHover={{ scale: 1.02 }}
+          onClick={() => navigate('/')}
           whileTap={{ scale: 0.98 }}
-          className="w-full btn-secondary flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-white/60 text-neutral-600 text-[14px] font-medium rounded-2xl border border-black/[0.04]"
         >
-          查看我的作品
+          返回首页
         </motion.button>
       </div>
     </motion.div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col pb-24">
-      {/* 顶部导航 */}
-      <div className="sticky top-0 z-50 glass border-b border-white/50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center">
-          <Link to="/" className="btn-ghost flex items-center gap-2 -ml-2">
-            <ArrowLeft size={20} />
-            返回
+    <div className="min-h-screen pb-32">
+      {/* 导航 */}
+      <div className="sticky top-0 z-50 bg-white/70 backdrop-blur-2xl border-b border-black/[0.04]">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
+          <Link to="/" className="flex items-center gap-2 text-neutral-400 hover:text-neutral-600 transition-colors">
+            <ArrowLeft size={18} strokeWidth={1.5} />
           </Link>
-          <h1 className="flex-1 text-center font-semibold text-lg text-neutral-900 mr-16">
-            单次疗愈
+          <h1 className="flex-1 text-center text-[15px] font-medium text-neutral-800">
+            此刻疗愈
           </h1>
+          <div className="w-5" />
         </div>
       </div>
 
-      {/* 主内容 */}
-      <div className="flex-1 p-4 py-8">
+      {/* 内容 */}
+      <div className="max-w-2xl mx-auto px-4 pt-6">
         <AnimatePresence mode="wait">
           {step === 'input' && renderInputStep()}
-          {step === 'analyzing' && renderAnalyzingStep()}
-          {step === 'generating' && renderGeneratingStep()}
+          {(step === 'analyzing' || step === 'generating') && renderProcessingStep()}
           {step === 'complete' && renderCompleteStep()}
         </AnimatePresence>
       </div>

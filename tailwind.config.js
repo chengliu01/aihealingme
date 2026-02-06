@@ -6,6 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      boxShadow: {
+        // 高级玻璃态阴影：外阴影 + 轻微内高光
+        glass: '0 12px 40px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255,255,255,0.7) inset',
+        soft: '0 18px 60px rgba(15, 23, 42, 0.10)',
+        float: '0 24px 80px rgba(15, 23, 42, 0.12)',
+      },
       colors: {
         // 主色调 - 蓝紫渐变系
         primary: {

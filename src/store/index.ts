@@ -23,6 +23,9 @@ interface AppState {
   favoriteAudios: HealingAudio[];
   currentlyPlaying: HealingAudio | null;
   isPlaying: boolean;
+  currentTime: number;
+  isShuffle: boolean;
+  isRepeat: boolean;
   addAudio: (audio: HealingAudio) => void;
   updateAudio: (id: string, updates: Partial<HealingAudio>) => void;
   deleteAudio: (id: string) => void;
@@ -30,6 +33,9 @@ interface AppState {
   publishAudio: (audioId: string) => void;
   setCurrentlyPlaying: (audio: HealingAudio | null) => void;
   setIsPlaying: (isPlaying: boolean) => void;
+  setCurrentTime: (time: number) => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
 
   // 计划状态
   plans: HealingPlan[];
@@ -274,6 +280,50 @@ const mockAudios: HealingAudio[] = [
   },
 ];
 
+// 模拟用户自己创作的音频
+const mockMyAudios: HealingAudio[] = [
+  {
+    id: 'my-1',
+    title: '我的放松冥想练习',
+    description: '自己录制的放松冥想音频',
+    coverUrl: 'https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=800&q=80',
+    audioUrl: '',
+    duration: 600,
+    author: mockUser,
+    tags: ['冥想', '放松', '自制'],
+    category: '冥想',
+    likes: 45,
+    views: 123,
+    comments: [],
+    isPublished: false, // 草稿状态
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'single',
+    waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
+    backgroundColor: 'from-blue-500/20 to-purple-500/20',
+  },
+  {
+    id: 'my-2',
+    title: '晚安助眠音频',
+    description: '帮助快速入睡的音频',
+    coverUrl: 'https://images.unsplash.com/photo-1511295742362-92c96b1cf484?w=800&q=80',
+    audioUrl: '',
+    duration: 1200,
+    author: mockUser,
+    tags: ['睡眠', '助眠', '自制'],
+    category: '睡眠',
+    likes: 89,
+    views: 234,
+    comments: [],
+    isPublished: true, // 已发布
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'single',
+    waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
+    backgroundColor: 'from-indigo-500/20 to-blue-500/20',
+  },
+];
+
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -286,10 +336,13 @@ export const useStore = create<AppState>()(
 
       // 音频状态
       audios: mockAudios,
-      myAudios: [],
+      myAudios: mockMyAudios,
       favoriteAudios: [],
       currentlyPlaying: null,
       isPlaying: false,
+      currentTime: 0,
+      isShuffle: false,
+      isRepeat: false,
       addAudio: (audio) => {
         set((state) => ({
           audios: [audio, ...state.audios],
@@ -333,8 +386,11 @@ export const useStore = create<AppState>()(
           ),
         }));
       },
-      setCurrentlyPlaying: (audio) => set({ currentlyPlaying: audio }),
+      setCurrentlyPlaying: (audio) => set({ currentlyPlaying: audio, currentTime: 0 }),
       setIsPlaying: (isPlaying) => set({ isPlaying }),
+      setCurrentTime: (time) => set({ currentTime: time }),
+      toggleShuffle: () => set((state) => ({ isShuffle: !state.isShuffle })),
+      toggleRepeat: () => set((state) => ({ isRepeat: !state.isRepeat })),
 
       // 计划状态
       plans: [],

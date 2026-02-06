@@ -1,19 +1,27 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, TrendingUp, Clock, Heart, Music2 } from 'lucide-react';
+import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X } from 'lucide-react';
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
 import { useStore } from '@/store';
 import { categoryOptions } from '@/utils';
 
 type SortType = 'trending' | 'newest' | 'popular';
+type LayoutType = 'grid' | 'list';
+
+const sortOptions = [
+  { id: 'trending', label: '热门', icon: TrendingUp },
+  { id: 'newest', label: '最新', icon: Clock },
+  { id: 'popular', label: '最爱', icon: Heart },
+];
 
 const Community = () => {
   const { audios } = useStore();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('trending');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [layout, setLayout] = useState<LayoutType>('grid');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const filteredAudios = useMemo(() => {
     let result = [...audios];
@@ -48,146 +56,202 @@ const Community = () => {
   }, [audios, selectedCategory, searchQuery, sortBy]);
 
   return (
-    <div className="min-h-screen pb-24">
-      <Header showSearch={false} />
+    <div className="min-h-screen pb-32">
+      <Header />
       
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* 页面标题 */}
+      <div className="max-w-6xl mx-auto px-4">
+        {/* 标题 & 搜索图标 & 布局切换 */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="pt-6 pb-6 flex items-end justify-between"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-              <Music2 size={20} className="text-white" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">疗愈社区</h1>
-          </div>
-          <p className="text-neutral-500 text-sm md:text-base ml-13">
-            探索来自社区的心灵疗愈音频，发现属于你的平静时刻
-          </p>
-        </motion.div>
-
-        {/* 搜索和筛选栏 */}
-        <div className="sticky top-0 z-30 py-4 -mx-4 px-4 bg-white/80 backdrop-blur-xl border-b border-neutral-100 mb-6">
-          <div className="flex flex-col gap-4">
-            {/* 搜索框 */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
-              <input
-                type="text"
-                placeholder="搜索疗愈音频、标签或话题..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
-              />
-            </div>
-
-            {/* 分类和排序 */}
-            <div className="flex items-center justify-between gap-4">
-              {/* 分类标签 */}
-              <div className="flex-1 overflow-x-auto scrollbar-hide">
-                <div className="flex gap-2">
-                  {categoryOptions.map((cat) => (
-                    <motion.button
-                      key={cat.value}
-                      onClick={() => setSelectedCategory(cat.value)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`
-                        px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap
-                        transition-all duration-300
-                        ${selectedCategory === cat.value 
-                          ? 'bg-neutral-900 text-white shadow-lg shadow-neutral-900/20' 
-                          : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
-                        }
-                      `}
-                    >
-                      {cat.label}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 排序下拉 */}
-              <div className="relative">
-                <motion.button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-neutral-200 rounded-xl text-neutral-600 hover:border-neutral-300 transition-colors"
-                >
-                  <SlidersHorizontal size={18} />
-                </motion.button>
-
-                <AnimatePresence>
-                  {isFilterOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 top-full mt-2 w-40 bg-white rounded-2xl shadow-xl border border-neutral-100 overflow-hidden"
-                    >
-                      <button
-                        onClick={() => { setSortBy('trending'); setIsFilterOpen(false); }}
-                        className={`w-full px-4 py-3 flex items-center gap-2 text-left hover:bg-neutral-50 transition-colors text-sm ${sortBy === 'trending' ? 'text-violet-600 bg-violet-50' : 'text-neutral-700'}`}
-                      >
-                        <TrendingUp size={16} />
-                        热门
-                      </button>
-                      <button
-                        onClick={() => { setSortBy('newest'); setIsFilterOpen(false); }}
-                        className={`w-full px-4 py-3 flex items-center gap-2 text-left hover:bg-neutral-50 transition-colors text-sm ${sortBy === 'newest' ? 'text-violet-600 bg-violet-50' : 'text-neutral-700'}`}
-                      >
-                        <Clock size={16} />
-                        最新
-                      </button>
-                      <button
-                        onClick={() => { setSortBy('popular'); setIsFilterOpen(false); }}
-                        className={`w-full px-4 py-3 flex items-center gap-2 text-left hover:bg-neutral-50 transition-colors text-sm ${sortBy === 'popular' ? 'text-violet-600 bg-violet-50' : 'text-neutral-700'}`}
-                      >
-                        <Heart size={16} />
-                        最受欢迎
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 音频网格 */}
-        <div className="mt-6">
-          {filteredAudios.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredAudios.map((audio, index) => (
-                <AudioCard key={audio.id} audio={audio} index={index} />
-              ))}
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center py-20"
-            >
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center mb-4">
-                <Search size={28} className="text-violet-400" />
-              </div>
-              <h3 className="text-base font-semibold text-neutral-700 mb-1">没有找到相关内容</h3>
-              <p className="text-neutral-400 text-sm">试试其他关键词或分类</p>
-            </motion.div>
-          )}
-        </div>
-
-        {/* 结果统计 */}
-        {filteredAudios.length > 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-neutral-400 text-sm">
-              共找到 {filteredAudios.length} 个疗愈音频
+          <div>
+            <h1 className="text-[26px] font-semibold text-neutral-800 tracking-tight">
+              社区发现
+            </h1>
+            <p className="text-[14px] text-neutral-400 mt-1">
+              探索精选的疗愈音频，找到内心的平静
             </p>
           </div>
+          
+          <div className="flex items-center gap-2">
+            {/* 搜索图标入口 */}
+            <motion.button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              whileTap={{ scale: 0.95 }}
+              className={`
+                p-2.5 rounded-xl transition-all duration-300
+                ${isSearchOpen 
+                  ? 'bg-neutral-900 text-white' 
+                  : 'bg-white/60 backdrop-blur-sm text-neutral-600 hover:bg-white/80 border border-black/[0.04]'
+                }
+              `}
+            >
+              {isSearchOpen ? <X size={18} strokeWidth={1.5} /> : <Search size={18} strokeWidth={1.5} />}
+            </motion.button>
+
+            {/* 布局切换 */}
+            <div className="flex items-center gap-1 p-1 bg-white/60 backdrop-blur-sm rounded-xl border border-black/[0.04]">
+              <motion.button
+                onClick={() => setLayout('grid')}
+                whileTap={{ scale: 0.95 }}
+                className={`p-2 rounded-lg transition-all ${
+                  layout === 'grid' 
+                    ? 'bg-neutral-900 text-white' 
+                    : 'text-neutral-400 hover:text-neutral-600'
+                }`}
+              >
+                <Grid3x3 size={18} strokeWidth={1.5} />
+              </motion.button>
+              <motion.button
+                onClick={() => setLayout('list')}
+                whileTap={{ scale: 0.95 }}
+                className={`p-2 rounded-lg transition-all ${
+                  layout === 'list' 
+                    ? 'bg-neutral-900 text-white' 
+                    : 'text-neutral-400 hover:text-neutral-600'
+                }`}
+              >
+                <List size={18} strokeWidth={1.5} />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 搜索框 - 可展开 */}
+        <AnimatePresence>
+          {isSearchOpen && (
+            <motion.div 
+              className="mb-6"
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300" size={18} strokeWidth={1.5} />
+                <input
+                  type="text"
+                  placeholder="搜索音频..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="input-clean pl-11 pr-4 rounded-2xl text-[14px]"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-300 hover:text-neutral-500 transition-colors"
+                  >
+                    <X size={16} strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 分类和排序 */}
+        <motion.div 
+          className="mb-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
+          {/* 分类 */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3 -mx-1 px-1">
+            {categoryOptions.map((cat, index) => (
+              <motion.button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 + index * 0.03 }}
+                className={`
+                  px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap
+                  transition-all duration-300 ease-out
+                  ${selectedCategory === cat.value 
+                    ? 'bg-neutral-900 text-white' 
+                    : 'bg-white/55 text-neutral-600 hover:bg-white/70 border border-black/[0.04] shadow-glass'
+                  }
+                `}
+              >
+                {cat.label}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* 排序 */}
+          <div className="flex gap-4 mt-2">
+            {sortOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setSortBy(option.id as SortType)}
+                className={`
+                  flex items-center gap-1.5 text-[12px] font-medium
+                  transition-colors duration-200
+                  ${sortBy === option.id ? 'text-neutral-800' : 'text-neutral-400'}
+                `}
+              >
+                <option.icon size={14} strokeWidth={1.5} />
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* 音频列表 */}
+        <AnimatePresence mode="wait">
+          {filteredAudios.length > 0 ? (
+            <motion.div 
+              key={`${layout}-grid`}
+              className={
+                layout === 'grid'
+                  ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'
+                  : 'space-y-3'
+              }
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {filteredAudios.map((audio, index) => (
+                <AudioCard 
+                  key={audio.id} 
+                  audio={audio} 
+                  index={index}
+                  layout={layout}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mb-4">
+                <Search size={24} className="text-neutral-300" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-[15px] font-medium text-neutral-600 mb-1">没有找到内容</h3>
+              <p className="text-[13px] text-neutral-400">试试其他关键词或分类</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 统计 */}
+        {filteredAudios.length > 0 && (
+          <motion.p 
+            className="text-center text-[12px] text-neutral-400 mt-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            共 {filteredAudios.length} 个音频
+          </motion.p>
         )}
       </div>
     </div>
