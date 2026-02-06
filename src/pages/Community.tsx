@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X } from 'lucide-react';
+import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
 import { useStore } from '@/store';
@@ -22,6 +22,9 @@ const Community = () => {
   const [sortBy, setSortBy] = useState<SortType>('trending');
   const [layout, setLayout] = useState<LayoutType>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
+
+  const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
 
   const filteredAudios = useMemo(() => {
     let result = [...audios];
@@ -161,17 +164,14 @@ const Community = () => {
           transition={{ duration: 0.4, delay: 0.15 }}
         >
           {/* 分类 */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3 -mx-1 px-1">
-            {categoryOptions.map((cat, index) => (
-              <motion.button
+          <div className="flex flex-wrap gap-2 pb-3">
+            {displayedCategories.map((cat) => (
+              <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.03 }}
                 className={`
                   px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap
-                  transition-all duration-300 ease-out
+                  transition-all duration-200
                   ${selectedCategory === cat.value 
                     ? 'bg-neutral-900 text-white' 
                     : 'bg-white/55 text-neutral-600 hover:bg-white/70 border border-black/[0.04] shadow-glass'
@@ -179,8 +179,23 @@ const Community = () => {
                 `}
               >
                 {cat.label}
-              </motion.button>
+              </button>
             ))}
+            
+            {/* 更多按钮 - 始终显示在最后 */}
+            <button
+              onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
+              className="px-3 py-2 rounded-full bg-white/55 text-neutral-400 hover:text-neutral-600 hover:bg-white/70 border border-black/[0.04] shadow-glass transition-colors flex items-center gap-1"
+            >
+              <span className="text-[12px] font-medium">
+                {isCategoryExpanded ? '收起' : '更多'}
+              </span>
+              {isCategoryExpanded ? (
+                <ChevronUp size={14} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={2} />
+              )}
+            </button>
           </div>
 
           {/* 排序 */}

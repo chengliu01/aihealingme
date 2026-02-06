@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Heart, Play, Pause, SkipBack, SkipForward,
-  Repeat, Shuffle, Send, MessageCircle, Gauge, X
+  Send, MessageCircle
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { formatDuration, formatDate, formatNumber, generateId } from '@/utils';
@@ -23,12 +23,9 @@ const AudioPlayer = () => {
     isPlaying,
     currentTime,
     isShuffle,
-    isRepeat,
     setCurrentlyPlaying,
     setIsPlaying,
     setCurrentTime,
-    toggleShuffle,
-    toggleRepeat,
     currentUser,
     addComment,
     likeComment
@@ -127,18 +124,7 @@ const AudioPlayer = () => {
             <ArrowLeft size={20} strokeWidth={1.5} />
           </motion.button>
           <p className="flex-1 text-center text-[12px] text-neutral-400 uppercase tracking-wider">正在播放</p>
-          <motion.button
-            onClick={() => {
-              setCurrentlyPlaying(null);
-              setIsPlaying(false);
-              setCurrentTime(0);
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="w-9 h-9 flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors"
-            title="关闭播放器"
-          >
-            <X size={20} strokeWidth={1.5} />
-          </motion.button>
+          <div className="w-9" />
         </div>
       </div>
 
@@ -232,145 +218,110 @@ const AudioPlayer = () => {
         </div>
 
         {/* 控制按钮 */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, ease: easeOut }}
-          className="flex items-center justify-center gap-4 mb-10"
-        >
-          <motion.button
-            onClick={() => toggleShuffle()}
-            whileTap={{ scale: 0.9 }}
-            className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-              isShuffle ? 'text-neutral-800' : 'text-neutral-300'
-            }`}
+        <div className="relative z-20">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, ease: easeOut }}
+            className="flex items-center justify-between px-6 mb-10"
           >
-            <Shuffle size={18} strokeWidth={1.5} />
-          </motion.button>
+            {/* 倍速 */}
+            <div className="relative">
+              <motion.button
+                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 flex flex-col items-center justify-center rounded-full text-neutral-400 hover:text-neutral-800 transition-colors"
+                title="倍速"
+              >
+                <span className="text-[13px] font-medium">{playbackSpeed}x</span>
+              </motion.button>
+              
+              {/* 倍速下拉菜单 */}
+              <AnimatePresence>
+                {showSpeedMenu && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowSpeedMenu(false)}
+                      className="fixed inset-0 z-40"
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                      className="absolute bottom-full left-0 mb-2 p-1.5 bg-white/95 backdrop-blur-xl rounded-2xl border border-black/[0.06] shadow-xl z-50 min-w-[60px]"
+                    >
+                      <div className="flex flex-col gap-1">
+                        {speedOptions.map((speed) => (
+                          <button
+                            key={speed}
+                            onClick={() => {
+                              setPlaybackSpeed(speed);
+                              setShowSpeedMenu(false);
+                            }}
+                            className={`px-3 py-2 rounded-xl text-[12px] font-medium transition-all ${
+                              playbackSpeed === speed
+                                ? 'bg-neutral-900 text-white'
+                                : 'text-neutral-600 hover:bg-neutral-100'
+                            }`}
+                          >
+                            {speed}x
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
 
-          <motion.button
-            onClick={handlePrev}
-            whileTap={{ scale: 0.9 }}
-            className="w-12 h-12 flex items-center justify-center text-neutral-600"
-          >
-            <SkipBack size={24} fill="currentColor" />
-          </motion.button>
+            {/* 播放控制核心区 */}
+            <div className="flex items-center gap-6">
+              <motion.button
+                onClick={handlePrev}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 transition-colors"
+              >
+                <SkipBack size={28} fill="currentColor" />
+              </motion.button>
 
-          <motion.button
-            onClick={() => setIsPlaying(!isPlaying)}
-            whileTap={{ scale: 0.95 }}
-            className="w-16 h-16 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-lg shadow-neutral-900/20"
-          >
-            {isPlaying ? (
-              <Pause size={26} fill="currentColor" />
-            ) : (
-              <Play size={26} fill="currentColor" className="ml-1" />
-            )}
-          </motion.button>
+              <motion.button
+                onClick={() => setIsPlaying(!isPlaying)}
+                whileTap={{ scale: 0.95 }}
+                className="w-16 h-16 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-lg shadow-neutral-900/20 hover:scale-105 transition-transform"
+              >
+                {isPlaying ? (
+                  <Pause size={28} fill="currentColor" />
+                ) : (
+                  <Play size={28} fill="currentColor" className="ml-1" />
+                )}
+              </motion.button>
 
-          <motion.button
-            onClick={handleNext}
-            whileTap={{ scale: 0.9 }}
-            className="w-12 h-12 flex items-center justify-center text-neutral-600"
-          >
-            <SkipForward size={24} fill="currentColor" />
-          </motion.button>
+              <motion.button
+                onClick={handleNext}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 transition-colors"
+              >
+                <SkipForward size={28} fill="currentColor" />
+              </motion.button>
+            </div>
 
-          <motion.button
-            onClick={() => toggleRepeat()}
-            whileTap={{ scale: 0.9 }}
-            className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-              isRepeat ? 'text-neutral-800' : 'text-neutral-300'
-            }`}
-          >
-            <Repeat size={18} strokeWidth={1.5} />
-          </motion.button>
-        </motion.div>
-
-        {/* 倍速播放控制 */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, ease: easeOut }}
-          className="flex justify-center mb-10 relative"
-        >
-          <motion.button
-            onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/[0.04] hover:bg-white/80 transition-all shadow-glass"
-          >
-            <Gauge size={16} className="text-neutral-600" strokeWidth={1.5} />
-            <span className="text-[13px] font-medium text-neutral-700">
-              {playbackSpeed}x 倍速
-            </span>
-          </motion.button>
-
-          {/* 倍速选项菜单 */}
-          <AnimatePresence>
-            {showSpeedMenu && (
-              <>
-                {/* 背景遮罩 */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowSpeedMenu(false)}
-                  className="fixed inset-0 z-40"
-                />
-                
-                {/* 菜单 */}
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  transition={{ duration: 0.2, ease: easeOut }}
-                  className="absolute bottom-full mb-2 z-50 p-2 bg-white/95 backdrop-blur-xl rounded-2xl border border-black/[0.06] shadow-2xl"
-                >
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {speedOptions.map((speed) => (
-                      <motion.button
-                        key={speed}
-                        onClick={() => {
-                          setPlaybackSpeed(speed);
-                          setShowSpeedMenu(false);
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`px-4 py-2 rounded-xl text-[13px] font-medium transition-all ${
-                          playbackSpeed === speed
-                            ? 'bg-neutral-900 text-white'
-                            : 'text-neutral-600 hover:bg-neutral-100'
-                        }`}
-                      >
-                        {speed}x
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* 操作按钮 */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, ease: easeOut }}
-          className="flex justify-center gap-3"
-        >
-          <motion.button
-            onClick={() => toggleFavorite(audio.id)}
-            whileTap={{ scale: 0.95 }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[14px] font-medium transition-all shadow-glass ${
-              isFavorite 
-                ? 'bg-rose-50 text-rose-500 border border-rose-100' 
-                : 'bg-white/55 text-neutral-700 border border-black/[0.04] hover:bg-white/70'
-            }`}
-          >
-            <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
-            {isFavorite ? '已收藏' : '收藏'}
-          </motion.button>
-        </motion.div>
+            {/* 收藏 */}
+            <motion.button
+              onClick={() => toggleFavorite(audio.id)}
+              whileTap={{ scale: 0.9 }}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                isFavorite 
+                  ? 'text-rose-500' 
+                  : 'text-neutral-400 hover:text-rose-400'
+              }`}
+            >
+              <Heart size={22} fill={isFavorite ? 'currentColor' : 'none'} strokeWidth={2} />
+            </motion.button>
+          </motion.div>
+        </div>
 
         {/* 评论区 */}
         <motion.div

@@ -7,6 +7,7 @@ import PlayerBar from './PlayerBar';
 
 const Layout = () => {
   const location = useLocation();
+  const isPlayerPage = location.pathname.startsWith('/audio/') || location.pathname.startsWith('/video/');
 
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
@@ -33,7 +34,7 @@ const Layout = () => {
       <Footer />
       
       {/* 全局播放器 - 确保在最顶层 */}
-      <PlayerBar />
+      {!isPlayerPage && <PlayerBar />}
     </div>
   );
 };

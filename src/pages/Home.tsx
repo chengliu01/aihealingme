@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Calendar, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Calendar, Moon, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
 import { useStore } from '@/store';
+import { categoryOptions } from '@/utils';
 
 const healingFeatures = [
   {
@@ -37,18 +38,13 @@ const healingFeatures = [
   },
 ];
 
-const categories = [
-  { id: 'all', label: '全部' },
-  { id: '冥想', label: '冥想' },
-  { id: '睡眠', label: '睡眠' },
-  { id: '焦虑', label: '焦虑' },
-  { id: '情感', label: '情感' },
-];
-
 const Home = () => {
   const { audios, plans } = useStore();
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
+  const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
+
+  const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
 
   const filteredAudios = activeCategory === 'all' 
     ? audios 
@@ -265,26 +261,38 @@ const Home = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           {/* 分类 - 优化样式 */}
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-5 -mx-1 px-1">
-            {categories.map((cat, index) => (
-              <motion.button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.45 + index * 0.04 }}
+          <div className="flex flex-wrap gap-2.5 mb-5">
+            {displayedCategories.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setActiveCategory(cat.value)}
                 className={`
                   px-5 py-2.5 rounded-full text-[13px] font-semibold whitespace-nowrap
-                  transition-all duration-400 ease-out
-                  ${activeCategory === cat.id 
-                    ? 'bg-neutral-900 text-white shadow-lg scale-105' 
+                  transition-all duration-300 ease-out
+                  ${activeCategory === cat.value 
+                    ? 'bg-neutral-900 text-white shadow-lg' 
                     : 'bg-white/70 text-neutral-500 hover:bg-white hover:text-neutral-700 border border-white/60 shadow-sm hover:shadow-md'
                   }
                 `}
               >
                 {cat.label}
-              </motion.button>
+              </button>
             ))}
+            
+            {/* 更多按钮 */}
+            <button
+              onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
+              className="px-4 py-2.5 rounded-full bg-white/70 text-neutral-400 hover:text-neutral-600 hover:bg-white border border-white/60 shadow-sm transition-all flex items-center gap-1"
+            >
+              <span className="text-[12px] font-medium">
+                {isCategoryExpanded ? '收起' : '更多'}
+              </span>
+              {isCategoryExpanded ? (
+                <ChevronUp size={14} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={2} />
+              )}
+            </button>
           </div>
           
           {/* 音频网格 */}

@@ -45,7 +45,6 @@ const PlayerBar = () => {
     return () => clearInterval(interval);
   }, [isPlaying, currentlyPlaying, currentTime, playbackSpeed, isRepeat, setCurrentTime]);
 
-  // 获取当前播放音频在列表中的索引
   const currentIndex = audios.findIndex(a => a.id === currentlyPlaying?.id);
 
   const handleClosePlayer = () => {
@@ -126,7 +125,7 @@ const PlayerBar = () => {
             {/* 主播放器容器 - 可点击跳转 */}
             <div 
               onClick={handleNavigateToDetail}
-              className="bg-white/70 backdrop-blur-2xl rounded-3xl py-3 px-4 shadow-2xl border border-white/60 cursor-pointer hover:bg-white/80 hover:shadow-3xl transition-all duration-300"
+              className="bg-white/40 backdrop-blur-3xl rounded-[2rem] py-3 px-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] border border-white/40 cursor-pointer hover:bg-white/50 transition-all duration-300"
             >
               <div className="flex items-center gap-4">
                 {/* 旋转的封面图片 */}
@@ -181,7 +180,7 @@ const PlayerBar = () => {
                   {/* 播放/暂停 */}
                   <button
                     onClick={handleTogglePlay}
-                    className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                    className="w-11 h-11 rounded-full bg-neutral-900/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
                   >
                     {isPlaying ? (
                       <Pause size={18} fill="currentColor" />
@@ -268,10 +267,10 @@ const PlayerBar = () => {
                   className="h-1.5 bg-neutral-200/60 rounded-full overflow-hidden cursor-pointer group hover:h-2 transition-all"
                 >
                   <div 
-                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full group-hover:from-violet-600 group-hover:to-purple-600 transition-all relative"
+                    className="h-full bg-neutral-800 rounded-full group-hover:bg-black transition-all relative"
                     style={{ width: `${progressPercent}%` }}
                   >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg ring-2 ring-purple-400/50" />
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg ring-2 ring-black/10" />
                   </div>
                 </div>
               </div>
