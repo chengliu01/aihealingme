@@ -13,9 +13,9 @@ const Create = () => {
       subtitle: 'INSTANT HEALING',
       description: '根据你此刻的状态，即时生成专属疗愈音频。AI 疗愈师通过深度情绪识别与分析，为你量身定制最适合当下的音频内容。',
       icon: Sparkles,
-      gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-      lightGradient: 'from-violet-50/80 via-purple-50/60 to-fuchsia-50/80',
-      glowColor: 'rgba(139, 92, 246, 0.3)',
+      gradient: 'from-slate-700 via-slate-600 to-slate-800',
+      lightGradient: 'from-slate-50/80 via-gray-50/60 to-slate-100/80',
+      glowColor: 'rgba(51, 65, 85, 0.25)',
       features: [
         '精准情绪识别与分析',
         'AI 智能音频定制',
@@ -86,7 +86,7 @@ const Create = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-100/70 via-purple-100/60 to-fuchsia-100/70 rounded-full text-violet-700 text-sm font-medium mb-6 shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-slate-100/70 via-gray-100/60 to-slate-100/70 rounded-full text-slate-700 text-sm font-medium mb-6 shadow-sm"
             >
               <Sparkles size={16} strokeWidth={2} />
               <span className="tracking-wide">AI 驱动的个性化疗愈</span>
@@ -95,7 +95,7 @@ const Create = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-5 tracking-tight leading-tight">
               每一种情绪，
               <br />
-              <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-800 bg-clip-text text-transparent">
                 都值得被温柔对待
               </span>
             </h1>

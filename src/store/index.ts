@@ -94,7 +94,7 @@ const mockAudios: HealingAudio[] = [
     updatedAt: new Date().toISOString(),
     type: 'single',
     waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
-    backgroundColor: 'from-violet-500/20 to-purple-500/20',
+    backgroundColor: 'from-slate-500/20 to-gray-500/20',
   },
   {
     id: '2',
@@ -300,7 +300,7 @@ const mockMyAudios: HealingAudio[] = [
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     type: 'single',
     waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
-    backgroundColor: 'from-blue-500/20 to-purple-500/20',
+    backgroundColor: 'from-blue-500/20 to-slate-500/20',
   },
   {
     id: 'my-2',

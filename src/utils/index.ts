@@ -56,8 +56,8 @@ export const emotionOptions = [
   { label: '悲伤', value: 'sadness', color: 'bg-blue-100 text-blue-700' },
   { label: '愤怒', value: 'anger', color: 'bg-rose-100 text-rose-700' },
   { label: '疲惫', value: 'fatigue', color: 'bg-gray-100 text-gray-700' },
-  { label: '迷茫', value: 'confusion', color: 'bg-purple-100 text-purple-700' },
-  { label: '孤独', value: 'loneliness', color: 'bg-slate-100 text-slate-700' },
+  { label: '迷茫', value: 'confusion', color: 'bg-slate-100 text-slate-600' },
+  { label: '孤独', value: 'loneliness', color: 'bg-stone-100 text-stone-700' },
 ];
 
 export const scenarioOptions = [

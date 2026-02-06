@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Bell } from 'lucide-react';
+import { Bell, LogOut, User, LogIn } from 'lucide-react';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
+import AuthModal from './AuthModal';
 
 const Header = () => {
   const { currentUser } = useStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +22,14 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setShowDropdown(false);
+    navigate('/');
+  };
+
+  const displayUser = user || currentUser;
 
   return (
     <header className="sticky top-0 z-40">
@@ -45,26 +59,82 @@ const Header = () => {
 
           {/* 右侧操作 */}
           <div className="flex items-center gap-1">
-            <motion.button 
-              className="w-9 h-9 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
-              whileTap={{ scale: 0.95 }}
-            >
-              <Bell size={18} strokeWidth={1.5} />
-            </motion.button>
+            {isAuthenticated ? (
+              <>
+                <motion.button 
+                  className="w-9 h-9 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Bell size={18} strokeWidth={1.5} />
+                </motion.button>
 
-            <NavLink to="/profile" className="ml-1">
-              <motion.img
-                src={currentUser?.avatar}
-                alt={currentUser?.name}
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-black/5"
+                <div className="relative ml-1">
+                  <motion.button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="w-8 h-8 rounded-full object-cover ring-1 ring-black/5 overflow-hidden"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {displayUser?.avatar ? (
+                      <img
+                        src={displayUser.avatar}
+                        alt={(displayUser as any).username || (displayUser as any).name || 'User'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center">
+                        <User size={16} className="text-white" />
+                      </div>
+                    )}
+                  </motion.button>
+
+                  {showDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-100"
+                    >
+                      <NavLink
+                        to="/profile"
+                        onClick={() => setShowDropdown(false)}
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 transition-colors"
+                      >
+                        <User size={16} />
+                        <span className="text-sm">个人中心</span>
+                      </NavLink>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 transition-colors text-red-600"
+                      >
+                        <LogOut size={16} />
+                        <span className="text-sm">退出登录</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <motion.button
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors rounded-lg hover:bg-white/50"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              />
-            </NavLink>
+              >
+                <LogIn size={16} strokeWidth={2} />
+                <span>登录</span>
+              </motion.button>
+            )}
           </div>
         </div>
       </motion.div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        initialMode="login"
+      />
     </header>
   );
 };

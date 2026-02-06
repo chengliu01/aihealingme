@@ -94,7 +94,7 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
 
             {/* 正在播放指示器 */}
             {isCurrentlyPlaying && (
-              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-violet-500 rounded text-white text-[9px] font-medium">
+              <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 bg-slate-700 rounded text-white text-[9px] font-medium">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
@@ -107,7 +107,7 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
           
           {/* 信息 */}
           <div className="flex-1 min-w-0 py-1">
-            <h3 className="font-semibold text-[15px] text-neutral-900 leading-snug line-clamp-2 mb-2 group-hover:text-violet-600 transition-colors">
+            <h3 className="font-semibold text-[15px] text-neutral-900 leading-snug line-clamp-2 mb-2 group-hover:text-slate-700 transition-colors">
               {audio.title}
             </h3>
             
@@ -214,7 +214,7 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
 
         {/* 正在播放指示器 */}
         {isCurrentlyPlaying && (
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 bg-violet-500 rounded-lg text-white text-[9px] font-medium">
+          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 bg-slate-700 rounded-lg text-white text-[9px] font-medium">
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
@@ -269,7 +269,7 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
 
       {/* 信息（可点击） */}
       <Link to={`/audio/${audio.id}`} className="block">
-        <h3 className="font-semibold text-[14px] text-neutral-900 leading-snug line-clamp-2 mb-1.5 group-hover:text-violet-600 transition-colors">
+        <h3 className="font-semibold text-[14px] text-neutral-900 leading-snug line-clamp-2 mb-1.5 group-hover:text-slate-700 transition-colors">
           {audio.title}
         </h3>
         

@@ -1,3 +1,5 @@
+import { Instagram, Facebook, MessageCircle, Twitter, Youtube } from 'lucide-react';
+
 const Footer = () => {
   const year = new Date().getFullYear();
 
@@ -6,93 +8,83 @@ const Footer = () => {
   const icpText = 'ICP备案号：待补充';
   const icpHref = 'https://beian.miit.gov.cn/';
 
-  const infoLinks = [
-    { label: '关于我们', href: '#about' },
-    { label: '用户协议', href: '#terms' },
-    { label: '隐私政策', href: '#privacy' },
-  ];
-
-  const contactItems = [
-    { label: '邮箱', value: 'contact@example.com' },
-    { label: '微信', value: 'WeChat_ID' },
-  ];
-
-  const promoItems = [
-    { label: '小红书', value: '@你的宣传号' },
-    { label: '公众号', value: '你的公众号名称' },
+  const socialLinks = [
+    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Facebook, href: '#', label: 'Facebook' },
+    { icon: MessageCircle, href: '#', label: 'WeChat' },
+    { icon: Twitter, href: '#', label: 'Twitter' },
+    { icon: Youtube, href: '#', label: 'Youtube' },
   ];
 
   return (
-    <footer className="relative z-10 mt-auto pb-32">
-      <div className="max-w-5xl mx-auto px-4">
-        {/* 完全透明容器 */}
-        <div className="relative px-6 py-8">
-          {/* 微妙的背景光晕 */}
-          <div className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-violet-100/20 to-purple-100/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-gradient-to-br from-cyan-100/20 to-blue-100/20 rounded-full blur-3xl" />
-          
-          <div className="relative">
-            {/* 内容区域 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-6">
-              <div>
-                <h3 className="text-[13px] font-semibold text-neutral-600 mb-3">信息区</h3>
-                <ul className="space-y-2.5">
-                  {infoLinks.map((item) => (
-                    <li key={item.label}>
-                      <a
-                        href={item.href}
-                        className="text-[13px] text-neutral-500 hover:text-neutral-800 transition-colors duration-200 inline-block"
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-[13px] font-semibold text-neutral-600 mb-3">联系方式</h3>
-                <ul className="space-y-2.5">
-                  {contactItems.map((item) => (
-                    <li key={item.label} className="text-[13px] text-neutral-500">
-                      <span className="text-neutral-400">{item.label}：</span>
-                      <span className="select-text">{item.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-[13px] font-semibold text-neutral-600 mb-3">宣传号</h3>
-                <ul className="space-y-2.5">
-                  {promoItems.map((item) => (
-                    <li key={item.label} className="text-[13px] text-neutral-500">
-                      <span className="text-neutral-400">{item.label}：</span>
-                      <span className="select-text">{item.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+    <footer className="relative z-10 mt-auto pb-32 bg-[#E5E0DA]">
+      <div className="max-w-5xl mx-auto px-6 py-12">
+        {/* 顶部区域：品牌 + 社交媒体 | 联系信息 */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-10">
+          {/* 左侧：品牌名 + 社交媒体 */}
+          <div>
+            <h2 className="text-3xl font-medium text-neutral-700 mb-4">{siteName}</h2>
+            <div className="flex items-center gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  className="w-9 h-9 rounded-full border border-neutral-400/40 flex items-center justify-center text-neutral-500 hover:text-neutral-700 hover:border-neutral-500 transition-all duration-200"
+                  aria-label={social.label}
+                >
+                  <social.icon size={16} strokeWidth={1.5} />
+                </a>
+              ))}
             </div>
+          </div>
 
-            {/* 分割线 - 更淡 */}
-            <div className="h-px bg-gradient-to-r from-transparent via-neutral-300/30 to-transparent mb-6" />
-
-            {/* 底部版权信息 */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-[12px] text-neutral-400">
-                © {year} {siteName}. All rights reserved.
-              </div>
-
-              <a
-                href={icpHref}
-                target="_blank"
-                rel="noreferrer"
-                className="text-[12px] text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
-              >
-                {icpText}
-              </a>
+          {/* 右侧：联系信息 */}
+          <div className="md:text-right">
+            <h3 className="text-xs font-medium text-neutral-600 uppercase tracking-wider mb-3">联系我们</h3>
+            <div className="space-y-1.5 text-sm text-neutral-600">
+              <p>加入我们</p>
+              <p>contact@example.com</p>
+              <p>support@xinyuliao.com</p>
             </div>
+          </div>
+        </div>
+
+        {/* 分隔线 */}
+        <div className="h-px bg-neutral-400/20 mb-8" />
+
+        {/* 中部：免责声明 */}
+        <div className="mb-8">
+          <h3 className="text-xs font-medium text-neutral-700 uppercase tracking-wider mb-3">免责声明</h3>
+          <p className="text-sm text-neutral-600 leading-relaxed max-w-3xl">
+            心语疗愈并非设计用于危机干预。如果您正处于危机中，请寻求专业帮助或拨打危机热线。
+            您可以在 www.findahelpline.com 找到相关资源。
+          </p>
+        </div>
+
+        {/* 分隔线 */}
+        <div className="h-px bg-neutral-400/20 mb-6" />
+
+        {/* 底部：版权信息 + 法律链接 */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-xs text-neutral-500">
+            © {year} {siteName}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-500">
+            <a
+              href={icpHref}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-neutral-700 transition-colors duration-200"
+            >
+              {icpText}
+            </a>
+            <a href="#terms" className="hover:text-neutral-700 transition-colors duration-200">
+              用户协议
+            </a>
+            <a href="#privacy" className="hover:text-neutral-700 transition-colors duration-200">
+              隐私政策
+            </a>
           </div>
         </div>
       </div>

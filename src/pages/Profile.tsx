@@ -155,7 +155,7 @@ const Profile = () => {
                 
                 <div className="flex-1 min-w-0 py-0.5">
                   <Link to={`/audio/${audio.id}`}>
-                    <h3 className="text-[15px] font-semibold text-neutral-900 line-clamp-1 mb-1 group-hover:text-violet-600 transition-colors">
+                    <h3 className="text-[15px] font-semibold text-neutral-900 line-clamp-1 mb-1 group-hover:text-slate-700 transition-colors">
                       {audio.title}
                     </h3>
                   </Link>
@@ -291,7 +291,7 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0 py-1">
-                  <h3 className="text-[15px] font-semibold text-neutral-900 line-clamp-1 mb-1 group-hover:text-violet-600 transition-colors">
+                  <h3 className="text-[15px] font-semibold text-neutral-900 line-clamp-1 mb-1 group-hover:text-slate-700 transition-colors">
                     {audio.title}
                   </h3>
                   <div className="flex items-center gap-2 mb-2">

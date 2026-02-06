@@ -114,7 +114,7 @@ const PlanHealing = () => {
       planStage: 0,
       planId: plan.id,
       waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
-      backgroundColor: 'from-violet-500/20 to-purple-500/20',
+      backgroundColor: 'from-slate-500/20 to-gray-500/20',
     };
 
     addAudio(audio);

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import ScrollToTop from '@/components/ScrollToTop';
 import Home from '@/pages/Home';
@@ -9,8 +10,19 @@ import Profile from '@/pages/Profile';
 import AudioPlayer from '@/pages/AudioPlayer';
 import SingleHealing from '@/pages/SingleHealing';
 import PlanHealing from '@/pages/PlanHealing';
+import { useAuthStore } from '@/store/authStore';
 
 function App() {
+  const { getCurrentUser } = useAuthStore();
+
+  useEffect(() => {
+    // Check if user is logged in on app load
+    const token = localStorage.getItem('token');
+    if (token) {
+      getCurrentUser();
+    }
+  }, [getCurrentUser]);
+
   return (
     <>
       <ScrollToTop />
