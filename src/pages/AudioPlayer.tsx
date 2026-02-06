@@ -115,7 +115,7 @@ const AudioPlayer = () => {
 
       {/* 导航 */}
       <div className="sticky top-0 z-50 bg-white/55 backdrop-blur-2xl border-b border-black/[0.03] shadow-glass">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
+        <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 h-14 flex items-center">
           <motion.button 
             onClick={() => navigate(-1)}
             whileTap={{ scale: 0.95 }}
@@ -128,7 +128,7 @@ const AudioPlayer = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 pt-6">
+      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 pt-6">
         {/* 封面 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

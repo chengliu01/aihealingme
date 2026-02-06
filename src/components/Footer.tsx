@@ -18,7 +18,7 @@ const Footer = () => {
 
   return (
     <footer className="relative z-10 mt-auto pb-32 bg-[#E5E0DA]">
-      <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 py-12">
         {/* 顶部区域：品牌 + 社交媒体 | 联系信息 */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-10">
           {/* 左侧：品牌名 + 社交媒体 */}

@@ -37,16 +37,16 @@ const Header = () => {
         className="transition-all duration-500 ease-out"
         initial={false}
         animate={{
-          backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.60)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(24px) saturate(160%)' : 'blur(0px)',
-          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.04)' : '1px solid transparent',
+          backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.30)' : 'rgba(255, 255, 255, 0.10)',
+          backdropFilter: scrolled ? 'blur(16px) saturate(180%)' : 'blur(8px) saturate(120%)',
+          borderBottom: scrolled ? '1px solid rgba(0,0,0,0.03)' : '1px solid rgba(255,255,255,0.20)',
           boxShadow: scrolled
-            ? '0 12px 40px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255,255,255,0.7) inset'
-            : '0 0 0 rgba(0,0,0,0)',
+            ? '0 4px 24px rgba(15, 23, 42, 0.03), 0 1px 0 rgba(255,255,255,0.4) inset'
+            : '0 2px 8px rgba(15, 23, 42, 0.01), 0 1px 0 rgba(255,255,255,0.2) inset',
         }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 h-14 flex items-center justify-between">
           {/* Logo */}
           <NavLink to="/" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-[12px] bg-gradient-to-br from-neutral-950 to-neutral-700 flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-105 shadow-glass ring-1 ring-white/40">

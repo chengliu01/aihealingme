@@ -331,7 +331,7 @@ const PlanHealing = () => {
   return (
     <div className="min-h-screen pb-32">
       <div className="sticky top-0 z-50 bg-white/70 backdrop-blur-2xl border-b border-black/[0.04]">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
+        <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 h-14 flex items-center">
           <Link to="/" className="flex items-center gap-2 text-neutral-400 hover:text-neutral-600 transition-colors">
             <ArrowLeft size={18} strokeWidth={1.5} />
           </Link>

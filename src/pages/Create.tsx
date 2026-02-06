@@ -16,6 +16,13 @@ const Create = () => {
       gradient: 'from-slate-700 via-slate-600 to-slate-800',
       lightGradient: 'from-slate-50/80 via-gray-50/60 to-slate-100/80',
       glowColor: 'rgba(51, 65, 85, 0.25)',
+      chat: {
+        headline: '你说，我在听',
+        subline: '从这一句开始，让情绪慢慢舒展',
+        userBubble: '我最近有点紧绷，想快速放松一下。',
+        assistantBubble: '收到，我们先从呼吸和情绪识别开始。',
+        entryLabel: '进入即时疗愈对话',
+      },
       features: [
         '精准情绪识别与分析',
         'AI 智能音频定制',
@@ -40,6 +47,13 @@ const Create = () => {
       gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
       lightGradient: 'from-cyan-50/80 via-blue-50/60 to-indigo-50/80',
       glowColor: 'rgba(6, 182, 212, 0.3)',
+      chat: {
+        headline: '慢慢说，我们一起梳理',
+        subline: '把情绪线索串起来，找到长期答案',
+        userBubble: '我想长期改善睡眠和情绪波动。',
+        assistantBubble: '太好了，我们会制定一个循序渐进的计划。',
+        entryLabel: '进入深度陪伴入口',
+      },
       features: [
         '专业心理评估问卷',
         '多轮深度需求沟通',
@@ -61,7 +75,7 @@ const Create = () => {
     <div className="min-h-screen flex flex-col">
       {/* 顶部导航 */}
       <div className="sticky top-0 z-50 glass-soft border-b border-white/30">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center">
+  <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 h-16 flex items-center">
           <Link to="/" className="btn-ghost flex items-center gap-2 -ml-2 text-neutral-600 hover:text-neutral-900">
             <ArrowLeft size={20} strokeWidth={1.5} />
             返回
@@ -73,8 +87,8 @@ const Create = () => {
       </div>
 
       {/* 主内容 */}
-      <div className="flex-1 flex items-center justify-center p-6 py-12">
-        <div className="w-full max-w-6xl">
+      <div className="flex-1 flex items-center justify-center p-2 py-10">
+        <div className="w-full max-w-7xl px-0.5">
           {/* 标题区域 - 更优雅 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -105,8 +119,8 @@ const Create = () => {
             </p>
           </motion.div>
 
-          {/* 选项卡片 - 大幅优化 */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* 选项卡片 - 横向双栏布局 */}
+          <div className="flex flex-col gap-8 max-w-5xl mx-auto">
             {options.map((option, index) => (
               <motion.div
                 key={option.id}
@@ -116,11 +130,11 @@ const Create = () => {
               >
                 <Link to={option.path}>
                   <motion.div
-                    className="relative overflow-hidden rounded-[2rem] p-10 bg-white/70 backdrop-blur-2xl shadow-2xl shadow-neutral-200/40 border border-white/60 transition-all duration-700 ease-out group"
+                    className="relative overflow-hidden rounded-[2rem] bg-white/70 backdrop-blur-2xl shadow-2xl shadow-neutral-200/40 border border-white/60 transition-all duration-700 ease-out group"
                     onMouseEnter={() => setHoveredCard(option.id)}
                     onMouseLeave={() => setHoveredCard(null)}
-                    whileHover={{ y: -12, scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ y: -10, scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     style={{
                       boxShadow: hoveredCard === option.id 
                         ? `0 25px 60px -12px ${option.glowColor}, 0 0 0 1px rgba(255,255,255,0.8)` 
@@ -156,102 +170,132 @@ const Create = () => {
                     />
 
                     {/* 内容区 */}
-                    <div className="relative">
-                      {/* 顶部图标和标识 */}
-                      <div className="flex items-start justify-between mb-6">
-                        <motion.div 
-                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-xl`}
-                          whileHover={{ rotate: 360, scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          <option.icon size={28} className="text-white" strokeWidth={2} />
-                        </motion.div>
-                        
-                        {/* Badge */}
-                        <span className="px-3 py-1.5 bg-white/80 backdrop-blur-sm text-neutral-600 text-xs font-semibold rounded-full border border-neutral-200/50 shadow-sm">
-                          {option.badge}
-                        </span>
+                    <div className="relative flex flex-col md:flex-row">
+                      {/* 左侧对话入口 */}
+                      <div className="md:w-[42%] p-7 md:p-8 bg-neutral-900/90 text-white border-b md:border-b-0 md:border-r border-white/10">
+                        <div className="flex items-start justify-between mb-8">
+                          <motion.div 
+                            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-xl`}
+                            whileHover={{ rotate: 360, scale: 1.1 }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <option.icon size={24} className="text-white" strokeWidth={2} />
+                          </motion.div>
+                          <span className="px-3 py-1.5 bg-white/10 text-white/80 text-xs font-semibold rounded-full border border-white/20">
+                            入口
+                          </span>
+                        </div>
+
+                        <h2 className="text-2xl font-semibold mb-2 tracking-tight">
+                          {option.chat.headline}
+                        </h2>
+                        <p className="text-white/70 text-sm leading-relaxed mb-6">
+                          {option.chat.subline}
+                        </p>
+
+                        <div className="space-y-3">
+                          <div className="flex justify-end">
+                            <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-white/15 px-4 py-3 text-sm leading-relaxed">
+                              {option.chat.userBubble}
+                            </div>
+                          </div>
+                          <div className="flex justify-start">
+                            <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-white/90 text-neutral-900 px-4 py-3 text-sm leading-relaxed">
+                              {option.chat.assistantBubble}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-8 flex items-center gap-2 text-sm font-semibold text-white/90">
+                          <span>{option.chat.entryLabel}</span>
+                          <span className="text-lg">→</span>
+                        </div>
                       </div>
 
-                      {/* 标题和副标题 */}
-                      <div className="mb-5">
-                        <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mb-2 letter-spacing-wide">
-                          {option.subtitle}
-                        </p>
-                        <h2 className="text-2xl font-bold text-neutral-900 mb-3 tracking-tight leading-tight">
-                          {option.title}
-                        </h2>
-                        <p className="text-neutral-600 leading-relaxed text-[14px]">
+                      {/* 右侧功能介绍 */}
+                      <div className="md:w-[58%] p-7 md:p-8 bg-white/70">
+                        <div className="flex items-start justify-between mb-6">
+                          <div>
+                            <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mb-2">
+                              {option.subtitle}
+                            </p>
+                            <h3 className="text-2xl font-bold text-neutral-900 mb-2 tracking-tight">
+                              {option.title}
+                            </h3>
+                          </div>
+                          <span className="px-3 py-1.5 bg-white/80 backdrop-blur-sm text-neutral-600 text-xs font-semibold rounded-full border border-neutral-200/50 shadow-sm">
+                            {option.badge}
+                          </span>
+                        </div>
+
+                        <p className="text-neutral-600 leading-relaxed text-sm mb-6">
                           {option.description}
                         </p>
-                      </div>
 
-                      {/* 数据统计 */}
-                      <div className="grid grid-cols-2 gap-3 mb-5">
-                        {option.stats.map((stat, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 + index * 0.15 + i * 0.1 }}
-                            className="bg-white/50 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/60"
-                          >
-                            <p className="text-[11px] text-neutral-400 font-medium mb-1">{stat.label}</p>
-                            <p className={`text-lg font-bold bg-gradient-to-r ${option.gradient} bg-clip-text text-transparent`}>
-                              {stat.value}
-                            </p>
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      {/* 特性列表 - 优化样式 */}
-                      <ul className="space-y-3 mb-8">
-                        {option.features.map((feature, i) => (
-                          <motion.li 
-                            key={i} 
-                            className="flex items-center gap-3 text-neutral-700 text-[13px]"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 + index * 0.15 + i * 0.08 }}
-                          >
-                            <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-md flex-shrink-0`}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            </div>
-                            <span className="font-medium">{feature}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
-
-                      {/* 行动按钮 - 高级感 */}
-                      <motion.div
-                        className="relative overflow-hidden rounded-2xl"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className={`
-                          w-full px-6 py-4 rounded-2xl font-semibold text-base
-                          flex items-center justify-center gap-2
-                          transition-all duration-500
-                          ${hoveredCard === option.id 
-                            ? `bg-gradient-to-r ${option.gradient} text-white shadow-xl` 
-                            : 'bg-neutral-900 text-white'
-                          }
-                        `}>
-                          <span>开始体验</span>
-                          <motion.span
-                            animate={{ 
-                              x: hoveredCard === option.id ? 4 : 0,
-                              opacity: hoveredCard === option.id ? 1 : 0.7,
-                            }}
-                            transition={{ duration: 0.3 }}
-                            className="text-xl"
-                          >
-                            {option.illustration}
-                          </motion.span>
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                          {option.stats.map((stat, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.3 + index * 0.15 + i * 0.1 }}
+                              className="bg-white/70 rounded-2xl p-3 text-center border border-white/60"
+                            >
+                              <p className="text-[11px] text-neutral-400 font-medium mb-1">{stat.label}</p>
+                              <p className={`text-lg font-bold bg-gradient-to-r ${option.gradient} bg-clip-text text-transparent`}>
+                                {stat.value}
+                              </p>
+                            </motion.div>
+                          ))}
                         </div>
-                      </motion.div>
+
+                        <ul className="grid sm:grid-cols-2 gap-3 mb-6">
+                          {option.features.map((feature, i) => (
+                            <motion.li
+                              key={i}
+                              className="flex items-center gap-3 text-neutral-700 text-[13px]"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.4 + index * 0.15 + i * 0.08 }}
+                            >
+                              <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-md flex-shrink-0`}>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              </div>
+                              <span className="font-medium">{feature}</span>
+                            </motion.li>
+                          ))}
+                        </ul>
+
+                        <motion.div
+                          className="relative overflow-hidden rounded-2xl"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className={`
+                            w-full px-6 py-4 rounded-2xl font-semibold text-base
+                            flex items-center justify-center gap-2
+                            transition-all duration-500
+                            ${hoveredCard === option.id 
+                              ? `bg-gradient-to-r ${option.gradient} text-white shadow-xl` 
+                              : 'bg-neutral-900 text-white'
+                            }
+                          `}>
+                            <span>开始体验</span>
+                            <motion.span
+                              animate={{ 
+                                x: hoveredCard === option.id ? 4 : 0,
+                                opacity: hoveredCard === option.id ? 1 : 0.7,
+                              }}
+                              transition={{ duration: 0.3 }}
+                              className="text-xl"
+                            >
+                              {option.illustration}
+                            </motion.span>
+                          </div>
+                        </motion.div>
+                      </div>
                     </div>
                   </motion.div>
                 </Link>

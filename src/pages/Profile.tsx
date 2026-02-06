@@ -30,7 +30,7 @@ const Profile = () => {
     <div className="min-h-screen pb-32">
       <Header />
       
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3">
         {/* 个人信息 */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
