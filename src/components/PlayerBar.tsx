@@ -23,36 +23,7 @@ const PlayerBar = () => {
   
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [rotation, setRotation] = useState(0);
-  const rotationRef = useRef(0);
-  const animationRef = useRef<number>();
-  const lastTimeRef = useRef<number>(0);
   const progressRef = useRef<HTMLDivElement>(null);
-
-  // 旋转动画
-  useEffect(() => {
-    const animate = (timestamp: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-      const deltaTime = timestamp - lastTimeRef.current;
-      lastTimeRef.current = timestamp;
-
-      if (isPlaying) {
-        // 8秒转一圈
-        rotationRef.current += (deltaTime / 1000) * (360 / 8);
-        setRotation(rotationRef.current);
-      }
-
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [isPlaying]);
 
   // 全局播放计时器
   useEffect(() => {
@@ -81,8 +52,6 @@ const PlayerBar = () => {
     setCurrentlyPlaying(null);
     setIsPlaying(false);
     setCurrentTime(0);
-    rotationRef.current = 0;
-    setRotation(0);
   };
 
   const handleTogglePlay = (e: React.MouseEvent) => {
@@ -96,8 +65,6 @@ const PlayerBar = () => {
       setCurrentlyPlaying(audios[currentIndex - 1]);
       setIsPlaying(true);
       setCurrentTime(0);
-      rotationRef.current = 0;
-      setRotation(0);
     }
   };
 
@@ -118,8 +85,6 @@ const PlayerBar = () => {
     setCurrentlyPlaying(audios[nextIndex]);
     setIsPlaying(true);
     setCurrentTime(0);
-    rotationRef.current = 0;
-    setRotation(0);
   };
 
   const handleSpeedChange = (speed: number) => {
@@ -155,25 +120,25 @@ const PlayerBar = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-[9999]"
+          className="fixed bottom-0 left-0 right-0 z-[9999] flex justify-center"
         >
-          <div className="mx-4 mb-4">
+          <div className="w-full max-w-2xl mx-4 mb-4">
             {/* 主播放器容器 - 可点击跳转 */}
             <div 
               onClick={handleNavigateToDetail}
-              className="bg-neutral-900/80 backdrop-blur-2xl rounded-2xl py-2 px-3 shadow-2xl border border-white/10 cursor-pointer hover:bg-neutral-900/85 transition-colors"
+              className="bg-white/70 backdrop-blur-2xl rounded-3xl py-3 px-4 shadow-2xl border border-white/60 cursor-pointer hover:bg-white/80 hover:shadow-3xl transition-all duration-300"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 {/* 旋转的封面图片 */}
                 <div 
                   className="relative flex-shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div
-                    className="w-10 h-10 rounded-lg overflow-hidden shadow-lg"
+                    key={currentlyPlaying.id}
+                    className={`w-12 h-12 rounded-full overflow-hidden shadow-lg ring-2 ring-white/30 animate-spin-slow`}
                     style={{
-                      transform: `rotate(${rotation}deg)`,
-                      transition: isPlaying ? 'none' : 'transform 0.3s ease-out',
+                      animationPlayState: isPlaying ? 'running' : 'paused',
                     }}
                   >
                     <img
@@ -184,44 +149,44 @@ const PlayerBar = () => {
                   </div>
                   {/* 中心孔装饰 */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-2.5 h-2.5 rounded-full bg-neutral-900/80 border border-white/20 shadow-inner" />
+                    <div className="w-3 h-3 rounded-full bg-white/90 border border-neutral-300/50 shadow-inner" />
                   </div>
                 </div>
 
                 {/* 音频信息 */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-[13px] font-medium text-white truncate">
+                  <h4 className="text-[14px] font-semibold text-neutral-800 truncate">
                     {currentlyPlaying.title}
                   </h4>
-                  <p className="text-[11px] text-neutral-400 truncate">
+                  <p className="text-[12px] text-neutral-500 truncate">
                     {currentlyPlaying.author.name} · {formatDuration(currentTime)} / {formatDuration(currentlyPlaying.duration)}
                   </p>
                 </div>
 
                 {/* 播放控制区 */}
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                   {/* 上一首 */}
                   <button
                     onClick={handlePrev}
                     disabled={!canGoPrev}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       canGoPrev 
-                        ? 'text-white/80 hover:text-white hover:bg-white/10' 
-                        : 'text-white/20 cursor-not-allowed'
+                        ? 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200/50' 
+                        : 'text-neutral-300 cursor-not-allowed'
                     }`}
                   >
-                    <SkipBack size={16} fill="currentColor" />
+                    <SkipBack size={18} fill="currentColor" />
                   </button>
 
                   {/* 播放/暂停 */}
                   <button
                     onClick={handleTogglePlay}
-                    className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-neutral-900 shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                    className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all"
                   >
                     {isPlaying ? (
-                      <Pause size={16} fill="currentColor" />
+                      <Pause size={18} fill="currentColor" />
                     ) : (
-                      <Play size={16} fill="currentColor" className="ml-0.5" />
+                      <Play size={18} fill="currentColor" className="ml-0.5" />
                     )}
                   </button>
 
@@ -229,13 +194,13 @@ const PlayerBar = () => {
                   <button
                     onClick={handleNext}
                     disabled={!canGoNext}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       canGoNext 
-                        ? 'text-white/80 hover:text-white hover:bg-white/10' 
-                        : 'text-white/20 cursor-not-allowed'
+                        ? 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200/50' 
+                        : 'text-neutral-300 cursor-not-allowed'
                     }`}
                   >
-                    <SkipForward size={16} fill="currentColor" />
+                    <SkipForward size={18} fill="currentColor" />
                   </button>
                 </div>
 
@@ -243,7 +208,7 @@ const PlayerBar = () => {
                 <div className="relative" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                    className="px-2 py-1.5 rounded-lg text-[11px] font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors min-w-[36px]"
+                    className="px-3 py-1.5 rounded-xl text-[12px] font-semibold text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200/50 transition-all min-w-[40px]"
                   >
                     {playbackSpeed}x
                   </button>
@@ -256,18 +221,18 @@ const PlayerBar = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute bottom-full right-0 mb-2 bg-neutral-800/95 backdrop-blur-xl rounded-xl p-1.5 shadow-2xl border border-white/10"
+                        className="absolute bottom-full right-0 mb-2 bg-white/90 backdrop-blur-xl rounded-2xl p-2 shadow-2xl border border-white/60"
                       >
-                        <div className="flex flex-row gap-1">
+                        <div className="flex flex-row gap-1.5">
                           {speedOptions.map((speed) => (
                             <button
                               key={speed}
                               onClick={() => handleSpeedChange(speed)}
                               className={`
-                                px-2 py-1 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap
+                                px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all whitespace-nowrap
                                 ${playbackSpeed === speed 
-                                  ? 'bg-white text-neutral-900' 
-                                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                                  ? 'bg-neutral-900 text-white shadow-md' 
+                                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
                                 }
                               `}
                             >
@@ -286,27 +251,27 @@ const PlayerBar = () => {
                     e.stopPropagation();
                     handleClosePlayer();
                   }}
-                  className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors"
+                  className="w-8 h-8 rounded-full bg-neutral-200/50 flex items-center justify-center text-neutral-500 hover:text-neutral-700 hover:bg-neutral-300/50 active:bg-neutral-300/70 transition-all"
                   title="关闭播放器"
                 >
-                  <X size={14} strokeWidth={2} />
+                  <X size={16} strokeWidth={2} />
                 </button>
               </div>
 
               {/* 进度条 */}
               <div 
-                className="mt-2 px-1 pb-1" 
+                className="mt-3 px-1 pb-1" 
                 onClick={handleProgressClick}
               >
                 <div 
                   ref={progressRef}
-                  className="h-1 bg-white/10 rounded-full overflow-hidden cursor-pointer group hover:h-1.5 transition-all"
+                  className="h-1.5 bg-neutral-200/60 rounded-full overflow-hidden cursor-pointer group hover:h-2 transition-all"
                 >
                   <div 
-                    className="h-full bg-white/60 rounded-full group-hover:bg-white/80 transition-all relative"
+                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full group-hover:from-violet-600 group-hover:to-purple-600 transition-all relative"
                     style={{ width: `${progressPercent}%` }}
                   >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-sm" />
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg ring-2 ring-purple-400/50" />
                   </div>
                 </div>
               </div>

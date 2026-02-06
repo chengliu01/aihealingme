@@ -148,16 +148,28 @@ const AudioPlayer = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: easeOut }}
-          className="mb-8"
+          className="mb-10 flex justify-center"
         >
-          <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-neutral-300/30">
-            <motion.img
-              src={audio.coverUrl}
-              alt={audio.title}
-              className="w-full h-full object-cover"
-              animate={{ scale: isPlaying ? 1.02 : 1 }}
-              transition={{ duration: 8, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-            />
+          <div className="relative w-64 h-64 md:w-72 md:h-72">
+            <div 
+              key={audio.id}
+              className="w-full h-full rounded-full overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-8 ring-white/50 animate-spin-slow"
+              style={{
+                animationPlayState: isPlaying ? 'running' : 'paused',
+              }}
+            >
+              <img
+                src={audio.coverUrl}
+                alt={audio.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* 中心孔装饰 */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-14 h-14 rounded-full bg-white/90 backdrop-blur-sm border shadow-inner flex items-center justify-center">
+                 <div className="w-4 h-4 rounded-full bg-neutral-200/50" />
+              </div>
+            </div>
           </div>
         </motion.div>
 
