@@ -117,8 +117,8 @@ const PlanDetail = () => {
 
   const easeOut = [0.25, 0.1, 0.25, 1];
 
-  // 获取该计划关联的所有音频
-  const allAudios = [...audios, ...myAudios];
+  // 获取该计划关联的所有音频（去重）
+  const allAudios = [...audios, ...myAudios.filter(ma => !audios.some(a => a.id === ma.id))];
   const planAudios = allAudios.filter(a => a.planId === id);
 
   // 当前选中阶段
@@ -773,13 +773,14 @@ const PlanDetail = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowShareModal(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
-            />
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[480px] sm:max-h-[600px] bg-white rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[480px] max-h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden"
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06]">
                 <h2 className="text-[16px] font-semibold text-neutral-800">发布到社区</h2>
@@ -852,6 +853,7 @@ const PlanDetail = () => {
                   确认发布
                 </motion.button>
               </div>
+            </motion.div>
             </motion.div>
           </>
         )}

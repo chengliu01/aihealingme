@@ -478,6 +478,7 @@ export const useStore = create<AppState>()(
         isAuthenticated: state.isAuthenticated,
         favoriteAudios: state.favoriteAudios,
         myAudios: state.myAudios,
+        audios: state.audios,
         plans: state.plans,
       }),
     }

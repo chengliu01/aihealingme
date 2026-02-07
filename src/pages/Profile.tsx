@@ -248,7 +248,7 @@ const Profile = () => {
               initial={{ opacity: 0, y: 12 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: index * 0.04, ease: easeOut }}
-              className="relative"
+              className={`relative ${showActionsMenu === audio.id ? 'z-50' : 'z-0'}`}
             >
               <div className="flex gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/[0.04] hover:bg-white/80 transition-all group">
                 <Link to={`/audio/${audio.id}`} className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
@@ -357,9 +357,9 @@ const Profile = () => {
                   <span className={`px-3 py-1 text-[11px] font-medium rounded-lg ${
                     audio.isPublished 
                       ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100' 
-                      : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+                      : 'bg-neutral-100 text-neutral-500 ring-1 ring-neutral-200'
                   }`}>
-                    {audio.isPublished ? '已发布' : '草稿'}
+                    {audio.isPublished ? '已发布' : '私密'}
                   </span>
                 </div>
               </div>
@@ -453,7 +453,7 @@ const Profile = () => {
                   <span className={`px-2 py-0.5 text-[10px] font-medium rounded-lg ${
                     plan.status === 'active' ? 'bg-neutral-900 text-white' : plan.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-500'
                   }`}>
-                    {plan.status === 'active' ? '进行中' : plan.status === 'completed' ? '已完成' : '草稿'}
+                    {plan.status === 'active' ? '进行中' : plan.status === 'completed' ? '已完成' : '私密'}
                   </span>
                 </div>
                 <p className="text-[12px] text-neutral-400">{plan.stages.length} 阶段 · {formatDuration(plan.totalDuration)}</p>

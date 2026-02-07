@@ -301,28 +301,44 @@ const PlanHealing = () => {
       totalDuration: planStages.reduce((sum, s) => sum + s.duration, 0),
     };
 
-    const firstAudio: HealingAudio = {
+    // 为每个阶段生成音频
+    const stageCoverUrls = [
+      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80',
+      'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&q=80',
+      'https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=800&q=80',
+      'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=800&q=80',
+      'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=800&q=80',
+    ];
+    const stageBgColors = [
+      'from-violet-500/20 to-purple-500/20',
+      'from-sky-500/20 to-cyan-500/20',
+      'from-amber-500/20 to-orange-500/20',
+      'from-emerald-500/20 to-teal-500/20',
+      'from-rose-500/20 to-pink-500/20',
+    ];
+
+    const stageAudios: HealingAudio[] = planStages.map((s, i) => ({
       id: generateId(),
-      title: planStages[0].title,
-      description: planStages[0].desc,
-      coverUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80',
+      title: s.title,
+      description: s.desc,
+      coverUrl: stageCoverUrls[i % stageCoverUrls.length],
       audioUrl: '',
-      duration: planStages[0].duration,
+      duration: s.duration,
       author: currentUser!,
-      tags: ['疗愈计划', ...planStages[0].techniques],
+      tags: ['疗愈计划', ...s.techniques],
       category: '冥想',
       likes: 0, views: 0, comments: [],
       isPublished: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       type: 'plan',
-      planStage: 0,
+      planStage: i,
       planId: plan.id,
       waveform: Array.from({ length: 50 }, () => Math.random() * 0.8 + 0.2),
-      backgroundColor: 'from-slate-500/20 to-gray-500/20',
-    };
+      backgroundColor: stageBgColors[i % stageBgColors.length],
+    }));
 
-    addAudio(firstAudio);
+    stageAudios.forEach(audio => addAudio(audio));
     addPlan(plan);
     setGeneratedPlan(plan);
     setFlowStep('complete');

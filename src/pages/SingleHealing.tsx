@@ -8,7 +8,7 @@ import {
 import { formatDuration } from '@/utils';
 import { useStore } from '@/store';
 import {
-  emotionOptions, scenarioOptions, durationOptions, generateId,
+  emotionOptions, scenarioOptions, generateId,
   bodySensationOptions, healingGoalOptions,
   mbtiGroups, lifeStageOptions, sleepQualityOptions, meditationExpOptions
 } from '@/utils';
@@ -108,9 +108,19 @@ const AI_FOLLOW_UPS: Array<{
     quickReplies: ['温柔的引导，帮我放松下来', '专注呼吸，让思绪安静', '给我一些安慰和力量', '带我做一次身体放松'],
   },
   {
-    content: '好的，我已经很好地理解了你此刻的状态和需求。让我为你定制一段专属的疗愈音频吧。\n\n你可以选择一个适合你的时长，然后我就开始生成。准备好了吗？✨',
+    content: '好的，我已经很好地理解了你此刻的状态和需求。让我为你定制一段专属的疗愈音频吧。\n\n点击下方的「生成」按钮，我会根据你的情况为你选择最合适的时长。准备好了吗？✨',
   },
 ];
+
+// AI 根据情绪强度和对话内容决定时长（秒）
+function determineDuration(intensity: number, messageCount: number): number {
+  // 情绪越强烈，时长越长
+  if (intensity >= 8) return 1200; // 20分钟
+  if (intensity >= 6) return 900;  // 15分钟
+  if (intensity >= 4) return 600;  // 10分钟
+  if (messageCount <= 2) return 300; // 对话少，短时长 5分钟
+  return 600; // 默认10分钟
+}
 
 // ======================== Component ========================
 
@@ -141,8 +151,7 @@ const SingleHealing = () => {
   const [chatInput, setChatInput] = useState('');
   const [aiRound, setAiRound] = useState(0);
   const [isAiTyping, setIsAiTyping] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState(600);
-  const [showDurationPicker, setShowDurationPicker] = useState(false);
+  const [canGenerate, setCanGenerate] = useState(false); // 用户发送过消息后可生成
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -178,13 +187,13 @@ const SingleHealing = () => {
     prevAiTyping.current = isAiTyping;
   }, [isAiTyping, chatMessages, scrollToBottom]);
 
-  // Scroll when duration picker appears
+  // Scroll when canGenerate changes
   useEffect(() => {
-    if (showDurationPicker) {
+    if (canGenerate) {
       shouldAutoScroll.current = true;
       scrollToBottom();
     }
-  }, [showDurationPicker, scrollToBottom]);
+  }, [canGenerate, scrollToBottom]);
 
   // ======================== Handlers ========================
 
@@ -217,6 +226,7 @@ const SingleHealing = () => {
     setChatMessages(prev => [...prev, userMsg]);
     setChatInput('');
     setIsAiTyping(true);
+    setCanGenerate(true); // 用户发送消息后可以生成
 
     // Simulate AI thinking
     await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
@@ -233,11 +243,6 @@ const SingleHealing = () => {
       };
       setChatMessages(prev => [...prev, aiMsg]);
       setAiRound(nextRound + 1);
-
-      // 最后一轮后显示时长选择
-      if (nextRound === AI_FOLLOW_UPS.length - 1) {
-        setShowDurationPicker(true);
-      }
     }
     setIsAiTyping(false);
   };
@@ -258,13 +263,17 @@ const SingleHealing = () => {
       .map(e => emotionOptions.find(opt => opt.value === e)?.label)
       .filter((label): label is string => Boolean(label));
 
+    // AI 根据情绪强度和对话内容决定时长
+    const userMessageCount = chatMessages.filter(m => m.role === 'user').length;
+    const aiDeterminedDuration = determineDuration(intensity, userMessageCount);
+
     const audio: HealingAudio = {
       id: generateId(),
       title: `专属疗愈：${emotionLabels.join('、') || '心灵平静'}`,
       description: chatMessages.filter(m => m.role === 'user').map(m => m.content).join('；'),
       coverUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80',
       audioUrl: '',
-      duration: selectedDuration,
+      duration: aiDeterminedDuration,
       author: currentUser!,
       tags: emotionLabels,
       category: emotionLabels[0] || '冥想',
@@ -629,42 +638,26 @@ const SingleHealing = () => {
           </motion.div>
         )}
 
-        {/* Duration Picker (appears after last AI round) */}
-        {showDurationPicker && !isAiTyping && (
+        {/* Generate Button (appears after user sends at least one message) */}
+        {canGenerate && !isAiTyping && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="ml-11 mt-2"
+            transition={{ delay: 0.2 }}
+            className="ml-11 mt-3"
           >
-            <div className="p-4 bg-white/80 rounded-2xl border border-black/[0.04] space-y-4">
-              <p className="text-[12px] text-neutral-500 font-medium">选择疗愈时长</p>
-              <div className="flex gap-2">
-                {durationOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setSelectedDuration(opt.value)}
-                    className={`
-                      flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-200 border
-                      ${selectedDuration === opt.value
-                        ? 'bg-neutral-900 text-white border-neutral-900'
-                        : 'bg-white text-neutral-600 border-black/[0.06] hover:bg-neutral-50'
-                      }
-                    `}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <motion.button
-                onClick={handleGenerate}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 bg-neutral-900 text-white text-[14px] font-medium rounded-xl flex items-center justify-center gap-2"
-              >
-                <Sparkles size={16} />
-                为我生成疗愈音频
-              </motion.button>
-            </div>
+            <motion.button
+              onClick={handleGenerate}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3.5 bg-neutral-900 text-white text-[14px] font-medium rounded-xl flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Sparkles size={16} />
+              为我生成疗愈音频
+            </motion.button>
+            <p className="text-center text-[11px] text-neutral-400 mt-2">
+              AI 将根据你的情绪状态自动选择最佳时长
+            </p>
           </motion.div>
         )}
 
@@ -699,7 +692,7 @@ const SingleHealing = () => {
             <Send size={16} />
           </motion.button>
         </div>
-        {!showDurationPicker && (
+        {!canGenerate && (
           <p className="text-center text-[10px] text-neutral-300 mt-2">和 AI 聊聊，它会为你定制最合适的疗愈方案</p>
         )}
       </div>

@@ -53,12 +53,14 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 // Connect to MongoDB and start server
+let server: ReturnType<typeof app.listen>;
+
 const startServer = async () => {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
@@ -67,6 +69,27 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Graceful shutdown for tsx watch mode
+const gracefulShutdown = async (signal: string) => {
+  console.log(`\n📴 ${signal} received, shutting down gracefully...`);
+  if (server) {
+    server.close(() => {
+      console.log('🔌 HTTP server closed');
+      mongoose.connection.close(false).then(() => {
+        console.log('🍃 MongoDB connection closed');
+        process.exit(0);
+      });
+    });
+  } else {
+    process.exit(0);
+  }
+  // Force exit after 3 seconds
+  setTimeout(() => process.exit(0), 3000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err: Error) => {
