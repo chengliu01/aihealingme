@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+// useState 已导入
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Sparkles, ArrowRight, Calendar, Moon, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
@@ -55,6 +56,54 @@ const Home = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+  
+  // 鼠标位置追踪 - 用于探照灯效果
+  const heroRef = useRef<HTMLElement>(null);
+  const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 720);
+  const mouseY = useMotionValue(300);
+  
+  // 使用弹簧动画让追踪更平滑
+  const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+  
+  // 组件挂载时设置初始位置为屏幕中心
+  useEffect(() => {
+    const updateInitialPosition = () => {
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        mouseX.set(rect.width / 2);
+        mouseY.set(rect.height / 2);
+      }
+    };
+    
+    // 延迟一点确保 ref 已经绑定
+    const timer = setTimeout(updateInitialPosition, 100);
+    
+    // 窗口大小改变时重新计算
+    window.addEventListener('resize', updateInitialPosition);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateInitialPosition);
+    };
+  }, []);
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (heroRef.current) {
+      const rect = heroRef.current.getBoundingClientRect();
+      mouseX.set(e.clientX - rect.left);
+      mouseY.set(e.clientY - rect.top);
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    // 鼠标离开时，缓慢回到中心
+    if (heroRef.current) {
+      const rect = heroRef.current.getBoundingClientRect();
+      mouseX.set(rect.width / 2);
+      mouseY.set(rect.height / 2);
+    }
+  };
 
   const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
 
@@ -108,27 +157,96 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen pb-32 bg-gradient-to-b from-pink-50/40 via-orange-50/20 to-stone-50/10">
+    <div className="min-h-screen pb-32 bg-[#f5f5f0]">
       <Header />
       
       {/* 首页封面 - Hero Banner */}
       <motion.section
+        ref={heroRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        className="relative overflow-hidden"
+        className="relative overflow-hidden bg-[#f5f5f0]"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         {/* 渐变背景 */}
         <div className="relative min-h-[500px] sm:min-h-[600px] flex items-center justify-center">
-          {/* 多层渐变叠加 - 使用柔和的暖色调，从上到下渐变 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-pink-100/50 via-rose-50/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-100/30 via-amber-50/20 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100/40 via-transparent to-transparent" />
+          {/* 柔和的背景色 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#faf9f5] via-[#f5f5f0] to-[#f0efe8]" />
           
-          {/* 装饰性模糊圆点 - 更柔和的颜色 */}
-          <div className="absolute top-10 left-20 w-96 h-96 bg-pink-200/20 rounded-full blur-3xl" />
-          <div className="absolute top-20 right-20 w-80 h-80 bg-orange-200/15 rounded-full blur-3xl" />
-          <div className="absolute top-40 left-1/2 -translate-x-1/2 w-[500px] h-64 bg-rose-200/15 rounded-full blur-3xl" />
+          {/* 背景图案层 - 初始状态很淡 */}
+          <div className="absolute inset-0 opacity-100">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#c8e0c8" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#b8d8b8" stopOpacity="0.3" />
+                </linearGradient>
+                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#c8d8e8" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#b8c8d8" stopOpacity="0.3" />
+                </linearGradient>
+                <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#e8c8d8" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#dcb8c8" stopOpacity="0.3" />
+                </linearGradient>
+                <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#e8e0c8" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#dcd4b8" stopOpacity="0.3" />
+                </linearGradient>
+              </defs>
+              
+              {/* 水滴形状 1 - 左上淡黄绿 */}
+              <ellipse cx="120" cy="150" rx="180" ry="120" fill="url(#grad1)" opacity="0.9" />
+              {/* 水滴形状 2 - 左中淡蓝 */}
+              <ellipse cx="280" cy="380" rx="140" ry="90" fill="url(#grad2)" opacity="0.85" />
+              {/* 水滴形状 3 - 中左淡紫粉 */}
+              <ellipse cx="480" cy="280" rx="160" ry="100" fill="url(#grad3)" opacity="0.9" />
+              {/* 水滴形状 4 - 中上淡青绿 */}
+              <ellipse cx="720" cy="120" rx="200" ry="80" fill="url(#grad1)" opacity="0.8" />
+              {/* 水滴形状 5 - 中右淡蓝 */}
+              <ellipse cx="850" cy="350" rx="150" ry="110" fill="url(#grad2)" opacity="0.85" />
+              {/* 水滴形状 6 - 右上淡紫 */}
+              <ellipse cx="1100" cy="180" rx="170" ry="95" fill="url(#grad3)" opacity="0.9" />
+              {/* 水滴形状 7 - 右下淡黄 */}
+              <ellipse cx="1250" cy="420" rx="140" ry="85" fill="url(#grad4)" opacity="0.8" />
+              {/* 水滴形状 8 - 底部淡蓝绿 */}
+              <ellipse cx="600" cy="480" rx="180" ry="70" fill="url(#grad2)" opacity="0.75" />
+              {/* 水滴形状 9 - 右侧中间淡绿 */}
+              <ellipse cx="1000" cy="320" rx="130" ry="100" fill="url(#grad1)" opacity="0.8" />
+            </svg>
+          </div>
+          
+          {/* 探照灯遮罩层 - 跟随鼠标 */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'rgba(245, 245, 240, 0.88)',
+              maskImage: useMotionValue(`radial-gradient(420px 420px at 50% 50%, transparent 0%, black 100%)`),
+              WebkitMaskImage: useMotionValue(`radial-gradient(420px 420px at 50% 50%, transparent 0%, black 100%)`),
+            }}
+          >
+            {/* 动态更新遮罩位置 */}
+            <MaskUpdater x={smoothX} y={smoothY} />
+          </motion.div>
+          
+          {/* 探照灯光晕 - 跟随鼠标 */}
+          <motion.div
+            className="absolute pointer-events-none rounded-full"
+            style={{
+              width: 420,
+              height: 420,
+              x: smoothX,
+              y: smoothY,
+              translateX: '-50%',
+              translateY: '-50%',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)',
+            }}
+          />
+          
+          {/* 自定义光标 - 柔和光圈（仅在有鼠标移动时显示） */}
+          <CursorDot x={smoothX} y={smoothY} />
           
           {/* 内容区 */}
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center py-16 sm:py-20">
@@ -138,12 +256,14 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <h1 className="text-[40px] sm:text-[52px] md:text-[64px] font-bold text-neutral-900 leading-tight tracking-tight mb-4">
-                每一种情绪，
+                世界吵闹，
                 <br />
-                都值得被温柔对待
+                但你的每声叹息都值得被听见
               </h1>
               <p className="text-[16px] sm:text-[18px] text-neutral-600/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-                24/7 情绪支持，陪伴你成长
+                24/7 情绪共振
+                <br />
+                是这一刻的温柔出口，也是每一天的生长力量。
               </p>
             </motion.div>
 
@@ -169,7 +289,7 @@ const Home = () => {
                 </div>
                 
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  开始疗愈
+                  开启AI疗愈
                   <Sparkles size={16} className="group-hover:rotate-12 transition-transform duration-300" />
                 </span>
               </button>
@@ -186,7 +306,7 @@ const Home = () => {
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-200/15 via-amber-200/15 to-yellow-200/15 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  探索社区
+                  发现情绪社区
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </button>
@@ -225,7 +345,7 @@ const Home = () => {
           </h2>
           <p className="text-[15px] text-neutral-500 text-center max-w-2xl mx-auto leading-relaxed">
             无论是即刻的温柔松绑，还是长远的静谧守护，<br className="hidden md:block" />
-            在这里，你的每一种频率都有回响。
+            在这里，你的每一种频率都会有专属智能疗愈师的回响。
           </p>
         </motion.section>
 
@@ -520,6 +640,82 @@ const Home = () => {
         </motion.section>
       </div>
     </div>
+  );
+};
+
+// 遮罩更新组件 - 用于探照灯效果
+interface MaskUpdaterProps {
+  x: ReturnType<typeof useSpring>;
+  y: ReturnType<typeof useSpring>;
+}
+
+const MaskUpdater = ({ x, y }: MaskUpdaterProps) => {
+  const divRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const updateMask = () => {
+      if (divRef.current) {
+        const latestX = x.get();
+        const latestY = y.get();
+        // 柔和的探照灯边缘
+        const maskValue = `radial-gradient(420px 420px at ${latestX}px ${latestY}px, transparent 0%, transparent 30%, rgba(245, 245, 240, 0.7) 60%, rgba(245, 245, 240, 0.95) 100%)`;
+        divRef.current.style.maskImage = maskValue;
+        divRef.current.style.webkitMaskImage = maskValue;
+      }
+    };
+    
+    const unsubscribeX = x.on("change", updateMask);
+    const unsubscribeY = y.on("change", updateMask);
+    
+    // 初始位置
+    updateMask();
+    
+    return () => {
+      unsubscribeX();
+      unsubscribeY();
+    };
+  }, [x, y]);
+  
+  return <div ref={divRef} className="absolute inset-0 bg-[#f5f5f0]" />;
+};
+
+// 自定义光标组件 - 只在鼠标进入后才显示
+interface CursorDotProps {
+  x: ReturnType<typeof useSpring>;
+  y: ReturnType<typeof useSpring>;
+}
+
+const CursorDot = ({ x, y }: CursorDotProps) => {
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    const unsubscribeX = x.on("change", (latestX) => {
+      const latestY = y.get();
+      // 只有在位置有效且不是初始默认值时才显示
+      if (latestX > 0 && latestY > 0 && latestX < 2000) {
+        setIsVisible(true);
+      }
+    });
+    
+    return () => {
+      unsubscribeX();
+    };
+  }, [x, y]);
+  
+  if (!isVisible) return null;
+  
+  return (
+    <motion.div
+      className="absolute pointer-events-none z-50"
+      style={{
+        x,
+        y,
+        translateX: '-50%',
+        translateY: '-50%',
+      }}
+    >
+      <div className="w-3 h-3 rounded-full bg-neutral-800/60 shadow-sm" />
+    </motion.div>
   );
 };
 

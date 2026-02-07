@@ -73,13 +73,21 @@ export const scenarioOptions = [
 
 export const categoryOptions = [
   { label: '全部', value: 'all' },
-  { label: '冥想', value: '冥想' },
-  { label: '睡眠', value: '睡眠' },
-  { label: '焦虑', value: '焦虑' },
-  { label: '职场', value: '职场' },
-  { label: '情感', value: '情感' },
-  { label: '学习', value: '学习' },
-  { label: '正念', value: '正念' },
+  { label: '自我探索', value: '自我探索' },
+  { label: '依恋关系', value: '依恋关系' },
+  { label: '正念冥想', value: '正念冥想' },
+  { label: '人际沟通', value: '人际沟通' },
+  { label: '亲密关系', value: '亲密关系' },
+  { label: '焦虑恐惧', value: '焦虑恐惧' },
+  { label: '抑郁疏导', value: '抑郁疏导' },
+  { label: '睡眠放松', value: '睡眠放松' },
+  { label: '压力管理', value: '压力管理' },
+  { label: '自信价值', value: '自信价值' },
+  { label: '人际社交', value: '人际社交' },
+  { label: '创伤修复', value: '创伤修复' },
+  { label: '愤怒冲突', value: '愤怒冲突' },
+  { label: '习惯成瘾', value: '习惯成瘾' },
+  { label: '人格模式', value: '人格模式' },
 ];
 
 export const durationOptions = [
