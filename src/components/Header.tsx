@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Bell, LogOut, User, LogIn } from 'lucide-react';
-import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
 import AuthModal from './AuthModal';
 
 const Header = () => {
-  const { currentUser } = useStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -29,7 +27,9 @@ const Header = () => {
     navigate('/');
   };
 
-  const displayUser = user || currentUser;
+  // 头像 fallback: 真实头像 > dicebear > 默认 User 图标
+  const avatarUrl = user?.avatar || (user?.username ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}` : '');
+  const displayName = user?.nickname || user?.username || '';
 
   return (
     <header className="sticky top-0 z-40">
@@ -76,10 +76,10 @@ const Header = () => {
                     whileTap={{ scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {displayUser?.avatar ? (
+                    {avatarUrl ? (
                       <img
-                        src={displayUser.avatar}
-                        alt={(displayUser as any).username || (displayUser as any).name || 'User'}
+                        src={avatarUrl}
+                        alt={displayName || 'User'}
                         className="w-full h-full object-cover"
                       />
                     ) : (

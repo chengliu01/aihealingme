@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 // Get token from localStorage
 const getToken = (): string | null => {
@@ -127,6 +127,10 @@ export const userAPI = {
     username?: string;
     bio?: string;
     avatar?: string;
+    nickname?: string;
+    lifeStage?: string;
+    healingPreference?: string;
+    motto?: string;
   }) => {
     return apiRequest<{
       success: boolean;
@@ -168,6 +172,32 @@ export const userAPI = {
       success: boolean;
       data: { following: any[] };
     }>(`/users/${userId}/following`);
+  },
+
+  uploadAvatar: async (file: File) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${API_BASE_URL}/users/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    return data as {
+      success: boolean;
+      data: { user: any; avatarUrl: string };
+      message: string;
+    };
   },
 };
 

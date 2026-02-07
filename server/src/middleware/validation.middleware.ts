@@ -67,6 +67,22 @@ export const updateProfileValidation: ValidationChain[] = [
     .trim()
     .isLength({ max: 20 })
     .withMessage('Nickname cannot exceed 20 characters'),
+
+  body('lifeStage')
+    .optional()
+    .isIn(['student', 'career_start', 'career_mid', 'free_life'])
+    .withMessage('Invalid life stage'),
+
+  body('healingPreference')
+    .optional()
+    .isIn(['rational', 'warm'])
+    .withMessage('Invalid healing preference'),
+
+  body('motto')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Motto cannot exceed 100 characters'),
 ];
 
 export const onboardingValidation: ValidationChain[] = [

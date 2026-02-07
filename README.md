@@ -168,10 +168,23 @@ npm run dev                  # 默认运行在 http://localhost:3000
 |------|------|------|------|
 | GET | `/:id` | 获取用户资料 | 否 |
 | PUT | `/profile` | 更新个人资料 | 是 |
+| POST | `/avatar` | 上传头像 | 是 |
 | POST | `/:id/follow` | 关注用户 | 是 |
 | DELETE | `/:id/follow` | 取消关注 | 是 |
 | GET | `/:id/followers` | 获取粉丝列表 | 否 |
 | GET | `/:id/following` | 获取关注列表 | 否 |
+
+#### 头像上传 `POST /api/users/avatar`
+
+支持用户上传自定义头像，使用 `multipart/form-data` 格式：
+
+- **字段名**: `avatar`
+- **支持格式**: JPG、PNG、GIF、WebP
+- **文件大小**: 最大 5MB
+- **存储位置**: `server/uploads/avatars/`
+- **访问路径**: `http://localhost:5001/uploads/avatars/{filename}`
+
+上传成功后会自动更新用户的 `avatar` 字段。
 
 ### 音频 (`/api/audio`)
 

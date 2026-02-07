@@ -6,6 +6,7 @@ import {
   Send, MessageCircle
 } from 'lucide-react';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import { formatDuration, formatDate, formatNumber, generateId } from '@/utils';
 
 const generateWaveform = () => Array.from({ length: 40 }, () => Math.random() * 0.6 + 0.2);
@@ -30,8 +31,18 @@ const AudioPlayer = () => {
     addComment,
     likeComment
   } = useStore();
+  const { user: authUser } = useAuthStore();
   
   const audio = audios.find(a => a.id === id);
+
+  // 使用真实用户数据构建评论作者信息
+  const commentAuthor: import('@/types').User | null = authUser ? {
+    id: (authUser as any)._id || (authUser as any).id || 'unknown',
+    name: authUser.nickname || authUser.username || '匿名用户',
+    avatar: authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.username || 'default'}`,
+    email: authUser.email || '',
+    createdAt: new Date().toISOString(),
+  } : currentUser;
   const isFavorite = favoriteAudios.some(a => a.id === id);
   
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -84,12 +95,12 @@ const AudioPlayer = () => {
   };
 
   const handleSubmitComment = () => {
-    if (!commentInput.trim() || !currentUser || !audio) return;
+    if (!commentInput.trim() || !commentAuthor || !audio) return;
     
     addComment(audio.id, {
       id: generateId(),
       content: commentInput.trim(),
-      author: currentUser,
+      author: commentAuthor,
       likes: 0,
       isLikedByCurrentUser: false,
       createdAt: new Date().toISOString(),
@@ -115,7 +126,7 @@ const AudioPlayer = () => {
 
       {/* 导航 */}
       <div className="sticky top-0 z-50 bg-white/55 backdrop-blur-2xl border-b border-black/[0.03] shadow-glass">
-        <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 h-14 flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 h-14 flex items-center">
           <motion.button 
             onClick={() => navigate(-1)}
             whileTap={{ scale: 0.95 }}
@@ -128,7 +139,7 @@ const AudioPlayer = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 pt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-6">
         {/* 封面 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -338,8 +349,8 @@ const AudioPlayer = () => {
           {/* 评论输入 */}
           <div className="flex gap-3 mb-4">
             <img
-              src={currentUser?.avatar}
-              alt={currentUser?.name}
+              src={commentAuthor?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}
+              alt={commentAuthor?.name || '用户'}
               className="w-8 h-8 rounded-full object-cover flex-shrink-0"
             />
             <div className="flex-1 relative">

@@ -75,7 +75,7 @@ const Create = () => {
     <div className="min-h-screen flex flex-col">
       {/* 顶部导航 */}
       <div className="sticky top-0 z-50 glass-soft border-b border-white/30">
-  <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 h-16 flex items-center">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 h-16 flex items-center">
           <Link to="/" className="btn-ghost flex items-center gap-2 -ml-2 text-neutral-600 hover:text-neutral-900">
             <ArrowLeft size={20} strokeWidth={1.5} />
             返回

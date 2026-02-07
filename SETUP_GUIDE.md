@@ -40,10 +40,10 @@
 ```bash
 # 安装 MongoDB
 brew tap mongodb/brew
-brew install mongodb-community@6.0
+brew install mongodb-community@8.0
 
 # 启动 MongoDB
-brew services start mongodb-community@6.0
+brew services start mongodb-community@8.0
 
 # 验证 MongoDB 是否运行
 mongosh
@@ -51,13 +51,12 @@ mongosh
 
 #### 或使用 Docker:
 ```bash
-docker run -d -p 27017:27017 --name mongodb mongo:6.0
+docker run -d -p 27017:27017 --name mongodb mongo:8.0
 ```
 
 ### 2. 启动后端服务器
 
 ```bash
-# 进入后端目录
 cd server
 
 # 已安装依赖，如需重新安装
@@ -65,12 +64,10 @@ npm install
 
 # 复制环境变量文件（已创建 .env）
 # 可根据需要修改 server/.env 文件
-
-# 启动开发服务器
 npm run dev
 ```
 
-后端服务器将在 `http://localhost:5000` 启动
+后端服务器将在 `http://localhost:5001` 启动
 
 ### 3. 启动前端应用
 

@@ -47,7 +47,7 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-32">
-      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         {/* 返回按钮 */}
         <motion.div 
           initial={{ opacity: 0 }}

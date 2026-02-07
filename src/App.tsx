@@ -11,6 +11,7 @@ import AudioPlayer from '@/pages/AudioPlayer';
 import SingleHealing from '@/pages/SingleHealing';
 import PlanHealing from '@/pages/PlanHealing';
 import Onboarding from '@/pages/Onboarding';
+import Settings from '@/pages/Settings';
 import { useAuthStore } from '@/store/authStore';
 
 // Guard: redirect to onboarding if not completed
@@ -55,6 +56,7 @@ function App() {
             <Route path="create/single" element={<SingleHealing />} />
             <Route path="create/plan" element={<PlanHealing />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
             <Route path="audio/:id" element={<AudioPlayer />} />
             {/* 为了兼容，保留旧的视频路由重定向 */}
             <Route path="video/:id" element={<AudioPlayer />} />

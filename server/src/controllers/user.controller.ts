@@ -181,3 +181,38 @@ export const getFollowing = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
+
+// @desc    Upload avatar
+// @route   POST /api/users/avatar
+// @access  Private
+export const uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!req.file) {
+      throw new ApiError(400, 'No file uploaded');
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, 'User not found');
+    }
+
+    // 构建头像 URL
+    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/avatars/${req.file.filename}`;
+    
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.json({
+      success: true,
+      data: { 
+        user,
+        avatarUrl 
+      },
+      message: 'Avatar uploaded successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

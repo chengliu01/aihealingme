@@ -1,15 +1,40 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Heart, Music2, Calendar, Play, Headphones, MoreVertical, Edit, Trash2, Globe } from 'lucide-react';
+import { Settings, Heart, Music2, Calendar, Play, Headphones, MoreVertical, Edit, Trash2, Globe, Quote, Camera } from 'lucide-react';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import { formatDuration, formatNumber, formatDate } from '@/utils';
+import { userAPI } from '@/services/api';
 import Header from '@/components/Header';
 
+// 生命周期映射
+const lifeStageMap: Record<string, { emoji: string; label: string }> = {
+  student: { emoji: '🎓', label: '求学探索期' },
+  career_start: { emoji: '🌱', label: '职场适应期' },
+  career_mid: { emoji: '🦁', label: '中坚奋斗期' },
+  free_life: { emoji: '🧘', label: '自由/慢生活' },
+};
+
+// 疗愈偏好映射
+const healingPrefMap: Record<string, { emoji: string; label: string }> = {
+  rational: { emoji: '🧠', label: '理智重构' },
+  warm: { emoji: '❤️', label: '温暖抱持' },
+};
+
 const Profile = () => {
-  const { currentUser, myAudios, favoriteAudios, plans, publishAudio, deleteAudio } = useStore();
+  const { myAudios, favoriteAudios, plans, publishAudio, deleteAudio } = useStore();
+  const { user: authUser, isAuthenticated, getCurrentUser } = useAuthStore();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'works' | 'favorites' | 'plans'>('works');
   const [showActionsMenu, setShowActionsMenu] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // 合并 authStore 用户信息
+  const displayName = authUser?.nickname || authUser?.username || '心灵旅人';
+  const displayEmail = authUser?.email || '';
+  const displayAvatar = authUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser?.username || 'default'}`;
 
   const stats = [
     { label: '创作', value: myAudios.length },
@@ -19,6 +44,29 @@ const Profile = () => {
 
   const activePlan = plans.find(p => p.status === 'active');
   const easeOut = [0.25, 0.1, 0.25, 1];
+
+  // 头像上传
+  const handleAvatarClick = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      await userAPI.uploadAvatar(file);
+      await getCurrentUser();
+    } catch {
+      // 静默失败
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
 
   const tabs = [
     { id: 'works', label: '作品', icon: Music2 },
@@ -30,34 +78,89 @@ const Profile = () => {
     <div className="min-h-screen pb-32">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         {/* 个人信息 */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: easeOut }}
-          className="pt-6 pb-8"
+          className="pt-6 pb-4"
         >
           <div className="flex items-start gap-4">
-            <img 
-              src={currentUser?.avatar} 
-              alt={currentUser?.name} 
-              className="w-16 h-16 rounded-2xl object-cover ring-1 ring-black/5" 
-            />
+            {/* 头像 - 可点击上传 */}
+            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+              <img 
+                src={displayAvatar} 
+                alt={displayName} 
+                className="w-16 h-16 rounded-2xl object-cover ring-1 ring-black/5" 
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 rounded-2xl transition-all flex items-center justify-center">
+                <Camera size={18} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              {isUploadingAvatar && (
+                <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </div>
             <div className="flex-1 pt-1">
-              <h1 className="text-[18px] font-semibold text-neutral-800">{currentUser?.name}</h1>
-              <p className="text-[13px] text-neutral-400 mt-0.5">{currentUser?.email}</p>
+              <h1 className="text-[18px] font-semibold text-neutral-800">{displayName}</h1>
+              <p className="text-[13px] text-neutral-400 mt-0.5">{displayEmail}</p>
             </div>
             <motion.button 
               whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/settings')}
               className="w-9 h-9 flex items-center justify-center text-neutral-400 hover:text-neutral-600 transition-colors"
             >
               <Settings size={18} strokeWidth={1.5} />
             </motion.button>
           </div>
 
+          {/* 个人签名 */}
+          {authUser?.motto && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="mt-3 flex items-start gap-2 text-[13px] text-neutral-500 italic"
+            >
+              <Quote size={12} className="text-neutral-300 mt-0.5 flex-shrink-0" />
+              <span className="line-clamp-2">{authUser.motto}</span>
+            </motion.div>
+          )}
+
+          {/* 个人标签：生命阶段 + 疗愈偏好 */}
+          {isAuthenticated && authUser?.onboardingCompleted && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex gap-2 mt-3 flex-wrap"
+            >
+              {authUser.lifeStage && lifeStageMap[authUser.lifeStage] && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 rounded-xl text-[12px] text-neutral-600 font-medium">
+                  <span>{lifeStageMap[authUser.lifeStage].emoji}</span>
+                  {lifeStageMap[authUser.lifeStage].label}
+                </span>
+              )}
+              {authUser.healingPreference && healingPrefMap[authUser.healingPreference] && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 rounded-xl text-[12px] text-neutral-600 font-medium">
+                  <span>{healingPrefMap[authUser.healingPreference].emoji}</span>
+                  {healingPrefMap[authUser.healingPreference].label}
+                </span>
+              )}
+            </motion.div>
+          )}
+
           {/* 统计 */}
-          <div className="flex gap-8 mt-6">
+          <div className="flex gap-8 mt-5">
             {stats.map((stat) => (
               <div key={stat.label}>
                 <div className="text-[20px] font-semibold text-neutral-800">{stat.value}</div>

@@ -62,7 +62,7 @@ const Community = () => {
     <div className="min-h-screen pb-32">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         {/* 标题 & 搜索图标 & 布局切换 */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
