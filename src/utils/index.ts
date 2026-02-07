@@ -250,3 +250,19 @@ export const meditationExpOptions = [
   { label: '有一定经验', value: 'experienced' },
   { label: '长期练习', value: 'advanced' },
 ];
+
+// 音频标签（发布到社区时使用）
+export const audioTagOptions = [
+  { label: '放松解压', value: 'relax', icon: '🌊' },
+  { label: '助眠', value: 'sleep', icon: '🌙' },
+  { label: '冥想', value: 'meditation', icon: '🧘' },
+  { label: '焦虑缓解', value: 'anxiety', icon: '💆' },
+  { label: '情绪疗愈', value: 'emotion', icon: '💖' },
+  { label: '专注力', value: 'focus', icon: '🎯' },
+  { label: '正念练习', value: 'mindfulness', icon: '☀️' },
+  { label: '呼吸引导', value: 'breathing', icon: '🌬️' },
+  { label: '身体扫描', value: 'body_scan', icon: '✨' },
+  { label: '自我关怀', value: 'self_care', icon: '🌸' },
+  { label: '能量提升', value: 'energy', icon: '⚡' },
+  { label: '创伤疗愈', value: 'trauma', icon: '🌈' },
+];

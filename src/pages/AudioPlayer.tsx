@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Heart, Play, Pause, SkipBack, SkipForward,
-  Send, MessageCircle
+  Send, MessageCircle, Share2, X, Check
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
-import { formatDuration, formatDate, formatNumber, generateId } from '@/utils';
+import { formatDuration, formatDate, formatNumber, generateId, audioTagOptions } from '@/utils';
 
 const generateWaveform = () => Array.from({ length: 40 }, () => Math.random() * 0.6 + 0.2);
 
@@ -29,7 +29,8 @@ const AudioPlayer = () => {
     setCurrentTime,
     currentUser,
     addComment,
-    likeComment
+    likeComment,
+    publishAudio
   } = useStore();
   const { user: authUser } = useAuthStore();
   
@@ -45,13 +46,20 @@ const AudioPlayer = () => {
   } : currentUser;
   const isFavorite = favoriteAudios.some(a => a.id === id);
   
+  // 检查是否是当前用户的音频
+  const isMyAudio = audio && currentUser && audio.author.id === currentUser.id;
+  const canPublish = isMyAudio && !audio?.isPublished;
+  
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [waveform] = useState(generateWaveform());
   const [commentInput, setCommentInput] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
-  const progressRef = useRef<HTMLDivElement>(null);
-
+  const progressRef = useRef<HTMLDivElement>(null);  
+  // 发布模态框状态
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishTags, setPublishTags] = useState<string[]>(audio?.tags || []);
+  const [publishDescription, setPublishDescription] = useState(audio?.description || '');
   useEffect(() => {
     if (audio && currentlyPlaying?.id !== audio.id) {
       setCurrentlyPlaying(audio);
@@ -94,6 +102,27 @@ const AudioPlayer = () => {
     navigate(`/audio/${audios[nextIndex].id}`);
   };
 
+  const handlePublish = () => {
+    if (audio && canPublish) {
+      setPublishTags(audio.tags || []);
+      setPublishDescription(audio.description || '');
+      setShowPublishModal(true);
+    }
+  };
+  
+  const handleConfirmPublish = () => {
+    if (audio && canPublish) {
+      publishAudio(audio.id, publishTags, publishDescription);
+      setShowPublishModal(false);
+    }
+  };
+  
+  const toggleTag = (tag: string) => {
+    setPublishTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
   const handleSubmitComment = () => {
     if (!commentInput.trim() || !commentAuthor || !audio) return;
     
@@ -134,7 +163,9 @@ const AudioPlayer = () => {
           >
             <ArrowLeft size={20} strokeWidth={1.5} />
           </motion.button>
-          <p className="flex-1 text-center text-[12px] text-neutral-400 uppercase tracking-wider">正在播放</p>
+          <p className="flex-1 text-center text-[12px] text-neutral-400 uppercase tracking-wider">
+            {canPublish ? '我的创作' : '正在播放'}
+          </p>
           <div className="w-9" />
         </div>
       </div>
@@ -177,7 +208,18 @@ const AudioPlayer = () => {
           transition={{ delay: 0.1, ease: easeOut }}
           className="text-center mb-8"
         >
-          <h1 className="text-[22px] font-semibold text-neutral-800 mb-2">{audio.title}</h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <h1 className="text-[22px] font-semibold text-neutral-800">{audio.title}</h1>
+            {isMyAudio && (
+              <span className={`px-2 py-0.5 text-[10px] font-medium rounded-lg ${
+                audio.isPublished 
+                  ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100' 
+                  : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
+              }`}>
+                {audio.isPublished ? '已发布' : '草稿'}
+              </span>
+            )}
+          </div>
           <p className="text-[14px] text-neutral-400">{audio.author.name}</p>
         </motion.div>
 
@@ -319,18 +361,33 @@ const AudioPlayer = () => {
               </motion.button>
             </div>
 
-            {/* 收藏 */}
-            <motion.button
-              onClick={() => toggleFavorite(audio.id)}
-              whileTap={{ scale: 0.9 }}
-              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-                isFavorite 
-                  ? 'text-rose-500' 
-                  : 'text-neutral-400 hover:text-rose-400'
-              }`}
-            >
-              <Heart size={22} fill={isFavorite ? 'currentColor' : 'none'} strokeWidth={2} />
-            </motion.button>
+            {/* 发布/收藏 */}
+            <div className="flex items-center gap-2">
+              {/* 发布到社区 */}
+              {canPublish && (
+                <motion.button
+                  onClick={handlePublish}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-10 h-10 flex items-center justify-center rounded-full transition-colors text-violet-500 hover:text-violet-600 hover:bg-violet-50"
+                  title="发布到社区"
+                >
+                  <Share2 size={20} strokeWidth={2} />
+                </motion.button>
+              )}
+              
+              {/* 收藏 */}
+              <motion.button
+                onClick={() => toggleFavorite(audio.id)}
+                whileTap={{ scale: 0.9 }}
+                className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                  isFavorite 
+                    ? 'text-rose-500' 
+                    : 'text-neutral-400 hover:text-rose-400'
+                }`}
+              >
+                <Heart size={22} fill={isFavorite ? 'currentColor' : 'none'} strokeWidth={2} />
+              </motion.button>
+            </div>
           </motion.div>
         </div>
 
@@ -424,6 +481,110 @@ const AudioPlayer = () => {
           )}
         </motion.div>
       </div>
+
+      {/* 发布模态框 */}
+      <AnimatePresence>
+        {showPublishModal && (
+          <>
+            {/* 遮罩 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPublishModal(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            />
+            
+            {/* 模态框 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[480px] sm:max-h-[600px] bg-white rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+            >
+              {/* 头部 */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06]">
+                <h2 className="text-[16px] font-semibold text-neutral-800">发布到社区</h2>
+                <motion.button
+                  onClick={() => setShowPublishModal(false)}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
+                >
+                  <X size={18} className="text-neutral-400" />
+                </motion.button>
+              </div>
+              
+              {/* 内容 */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* 标签选择 */}
+                <div className="mb-6">
+                  <label className="block text-[14px] font-medium text-neutral-700 mb-3">
+                    选择标签 <span className="text-[12px] text-neutral-400 font-normal">(可多选)</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {audioTagOptions.map((tag) => (
+                      <motion.button
+                        key={tag.value}
+                        onClick={() => toggleTag(tag.value)}
+                        whileTap={{ scale: 0.96 }}
+                        className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 ${
+                          publishTags.includes(tag.value)
+                            ? 'bg-neutral-900 text-white'
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                        }`}
+                      >
+                        <span className="mr-1.5">{tag.icon}</span>
+                        {tag.label}
+                      </motion.button>
+                    ))}
+                  </div>
+                  {publishTags.length === 0 && (
+                    <p className="mt-2 text-[12px] text-rose-500">请至少选择一个标签</p>
+                  )}
+                </div>
+                
+                {/* 文案输入 */}
+                <div>
+                  <label className="block text-[14px] font-medium text-neutral-700 mb-3">
+                    分享文案 <span className="text-[12px] text-neutral-400 font-normal">(可选)</span>
+                  </label>
+                  <textarea
+                    value={publishDescription}
+                    onChange={(e) => setPublishDescription(e.target.value)}
+                    placeholder={`分享一下这个音频的亮点或适用场景...\n\n例如：这是一段适合睡前聆听的冥想音频，能帮助你放松身心，进入深度睡眠。`}
+                    rows={6}
+                    maxLength={500}
+                    className="w-full px-4 py-3 bg-neutral-50 border border-black/[0.06] rounded-2xl text-[14px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-neutral-300 transition-all resize-none"
+                  />
+                  <div className="mt-2 text-right text-[11px] text-neutral-400">
+                    {publishDescription.length}/500
+                  </div>
+                </div>
+              </div>
+              
+              {/* 底部按钮 */}
+              <div className="flex gap-3 px-6 py-4 border-t border-black/[0.06]">
+                <motion.button
+                  onClick={() => setShowPublishModal(false)}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-3 rounded-xl bg-neutral-100 text-neutral-600 text-[14px] font-medium hover:bg-neutral-200 transition-colors"
+                >
+                  取消
+                </motion.button>
+                <motion.button
+                  onClick={handleConfirmPublish}
+                  disabled={publishTags.length === 0}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-1 py-3 rounded-xl bg-neutral-900 text-white text-[14px] font-medium hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Check size={16} />
+                  确认发布
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { Sparkles, ArrowRight, Calendar, Moon, ChevronDown, ChevronUp } from 'lu
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import { categoryOptions } from '@/utils';
 
 const healingFeatures = [
@@ -53,6 +54,7 @@ const healingFeatures = [
 
 const Home = () => {
   const { audios, plans } = useStore();
+  const { isAuthenticated } = useAuthStore();
   const [activeCategory, setActiveCategory] = useState('all');
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -111,7 +113,9 @@ const Home = () => {
     ? audios 
     : audios.filter(a => a.category === activeCategory);
 
-  const activePlan = plans.find(p => p.status === 'active');
+  const activePlan = isAuthenticated ? plans.find(p => p.status === 'active') : null;
+  const activePlanCompletedCount = activePlan ? activePlan.stages.filter(s => s.status === 'completed').length : 0;
+  const activePlanProgress = activePlan ? Math.round((activePlanCompletedCount / activePlan.stages.length) * 100) : 0;
 
   // 使用 Intersection Observer 监听各个区域进入视口
   useEffect(() => {
@@ -579,7 +583,7 @@ const Home = () => {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="mb-10"
           >
-            <Link to="/create/plan" className="block group">
+            <Link to={`/plan/${activePlan.id}`} className="block group">
               <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl border border-white/60 shadow-lg shadow-neutral-200/20 hover:shadow-xl transition-all duration-500">
                 {/* 装饰性背景 */}
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-cyan-100/40 to-blue-100/40 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
@@ -597,7 +601,7 @@ const Home = () => {
                     </div>
                     <div className="text-right">
                       <span className="text-[24px] font-bold text-neutral-800">
-                        {Math.round((activePlan.currentStage / activePlan.stages.length) * 100)}%
+                        {activePlanProgress}%
                       </span>
                       <p className="text-[10px] text-neutral-400 font-medium">已完成</p>
                     </div>
@@ -608,7 +612,7 @@ const Home = () => {
                     <motion.div
                       className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full shadow-sm"
                       initial={{ width: 0 }}
-                      animate={{ width: `${(activePlan.currentStage / activePlan.stages.length) * 100}%` }}
+                      animate={{ width: `${activePlanProgress}%` }}
                       transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
                     />
                   </div>

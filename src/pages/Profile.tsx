@@ -172,43 +172,45 @@ const Profile = () => {
 
         {/* 进行中的计划 */}
         {activePlan && (
-          <motion.div 
-            initial={{ opacity: 0, y: 12 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.1, ease: easeOut }}
-            className="card p-4 mb-6"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[11px] text-neutral-400 font-medium uppercase tracking-wider">进行中</p>
-                <h2 className="text-[14px] font-medium text-neutral-800">{activePlan.title}</h2>
+          <Link to={`/plan/${activePlan.id}`}>
+            <motion.div 
+              initial={{ opacity: 0, y: 12 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.1, ease: easeOut }}
+              className="card p-4 mb-6 hover:bg-white/80 hover:shadow-lg transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-[11px] text-neutral-400 font-medium uppercase tracking-wider">进行中</p>
+                  <h2 className="text-[14px] font-medium text-neutral-800">{activePlan.title}</h2>
+                </div>
+                <span className="text-[18px] font-semibold text-neutral-800">
+                  {Math.round((activePlan.currentStage / activePlan.stages.length) * 100)}%
+                </span>
               </div>
-              <span className="text-[18px] font-semibold text-neutral-800">
-                {Math.round((activePlan.currentStage / activePlan.stages.length) * 100)}%
-              </span>
-            </div>
-            <div className="h-1 bg-neutral-100 rounded-full overflow-hidden mb-4">
-              <motion.div 
-                className="h-full bg-neutral-900 rounded-full" 
-                initial={{ width: 0 }} 
-                animate={{ width: `${(activePlan.currentStage / activePlan.stages.length) * 100}%` }} 
-                transition={{ duration: 0.8, ease: easeOut }} 
-              />
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-white/45 backdrop-blur-md rounded-2xl border border-white/40 shadow-glass">
-              <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
-                <Play size={16} className="text-white ml-0.5" fill="currentColor" />
+              <div className="h-1 bg-neutral-100 rounded-full overflow-hidden mb-4">
+                <motion.div 
+                  className="h-full bg-neutral-900 rounded-full" 
+                  initial={{ width: 0 }} 
+                  animate={{ width: `${(activePlan.currentStage / activePlan.stages.length) * 100}%` }} 
+                  transition={{ duration: 0.8, ease: easeOut }} 
+                />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-neutral-800 truncate">
-                  {activePlan.stages[activePlan.currentStage]?.title}
-                </p>
-                <p className="text-[11px] text-neutral-400 truncate">
-                  {activePlan.stages[activePlan.currentStage]?.description}
-                </p>
+              <div className="flex items-center gap-3 p-3 bg-white/45 backdrop-blur-md rounded-2xl border border-white/40 shadow-glass">
+                <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center">
+                  <Play size={16} className="text-white ml-0.5" fill="currentColor" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-neutral-800 truncate">
+                    {activePlan.stages[activePlan.currentStage]?.title}
+                  </p>
+                  <p className="text-[11px] text-neutral-400 truncate">
+                    {activePlan.stages[activePlan.currentStage]?.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </Link>
         )}
 
         {/* 标签 */}
@@ -441,17 +443,21 @@ const Profile = () => {
               initial={{ opacity: 0, y: 12 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: index * 0.04, ease: easeOut }} 
-              className="p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/[0.04]"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[14px] font-medium text-neutral-800">{plan.title}</h3>
-                <span className={`px-2 py-0.5 text-[10px] font-medium rounded-lg ${
-                  plan.status === 'active' ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-500'
-                }`}>
-                  {plan.status === 'active' ? '进行中' : plan.status === 'completed' ? '已完成' : '草稿'}
-                </span>
-              </div>
-              <p className="text-[12px] text-neutral-400">{plan.stages.length} 阶段 · {formatDuration(plan.totalDuration)}</p>
+              <Link 
+                to={`/plan/${plan.id}`}
+                className="block p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-black/[0.04] hover:bg-white/80 hover:shadow-lg transition-all"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-[14px] font-medium text-neutral-800">{plan.title}</h3>
+                  <span className={`px-2 py-0.5 text-[10px] font-medium rounded-lg ${
+                    plan.status === 'active' ? 'bg-neutral-900 text-white' : plan.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-500'
+                  }`}>
+                    {plan.status === 'active' ? '进行中' : plan.status === 'completed' ? '已完成' : '草稿'}
+                  </span>
+                </div>
+                <p className="text-[12px] text-neutral-400">{plan.stages.length} 阶段 · {formatDuration(plan.totalDuration)}</p>
+              </Link>
             </motion.div>
           )) : (
             <div className="text-center py-16">

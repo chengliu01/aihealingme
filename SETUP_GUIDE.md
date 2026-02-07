@@ -2,8 +2,6 @@
 
 ## 项目概览
 
-本项目已经创建了一个完整的后端系统，包括：
-
 ### 后端功能 ✅
 - **用户认证系统**
   - 用户注册（用户名、邮箱、密码）
@@ -305,7 +303,3 @@ VITE_API_URL=http://localhost:5000/api
 - Zustand 状态管理
 - Framer Motion 动画
 - Tailwind CSS
-
-## 许可证
-
-MIT

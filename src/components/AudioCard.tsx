@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Play, Pause, Headphones, MessageCircle, Clock } from 'lucide-react';
 import type { HealingAudio } from '@/types';
-import { formatDuration, formatNumber, formatDate } from '@/utils';
+import { formatDuration, formatNumber, formatDate, audioTagOptions } from '@/utils';
 import { useStore } from '@/store';
 
 interface AudioCardProps {
@@ -23,6 +23,12 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
   const isCurrentlyPlaying = currentlyPlaying?.id === audio.id;
   const [localLikes, setLocalLikes] = useState(audio.likes);
   const [liked, setLiked] = useState(false);
+  
+  // 获取标签显示信息
+  const getTagDisplay = (tagValue: string) => {
+    const tag = audioTagOptions.find(t => t.value === tagValue);
+    return tag ? { label: tag.label, icon: tag.icon } : { label: tagValue, icon: '' };
+  };
 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -125,14 +131,18 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
             
             {/* 标签 */}
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {audio.tags.slice(0, 3).map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-md text-[10px] font-medium"
-                >
-                  {tag}
-                </span>
-              ))}
+              {audio.tags.slice(0, 3).map((tag, i) => {
+                const { label, icon } = getTagDisplay(tag);
+                return (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-md text-[10px] font-medium"
+                  >
+                    {icon && <span className="mr-1">{icon}</span>}
+                    {label}
+                  </span>
+                );
+              })}
             </div>
             
             {/* 统计信息 */}
@@ -287,14 +297,18 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
         
         {/* 标签 */}
         <div className="flex flex-wrap gap-1">
-          {audio.tags.slice(0, 2).map((tag, i) => (
-            <span
-              key={i}
-              className="px-1.5 py-0.5 bg-neutral-100 text-neutral-600 rounded text-[9px] font-medium"
-            >
-              {tag}
-            </span>
-          ))}
+          {audio.tags.slice(0, 2).map((tag, i) => {
+            const { label, icon } = getTagDisplay(tag);
+            return (
+              <span
+                key={i}
+                className="px-1.5 py-0.5 bg-neutral-100 text-neutral-600 rounded text-[9px] font-medium"
+              >
+                {icon && <span className="mr-0.5">{icon}</span>}
+                {label}
+              </span>
+            );
+          })}
         </div>
       </Link>
     </motion.div>

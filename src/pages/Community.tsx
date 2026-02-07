@@ -27,7 +27,8 @@ const Community = () => {
   const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
 
   const filteredAudios = useMemo(() => {
-    let result = [...audios];
+    // 只显示已发布的音频
+    let result = audios.filter(a => a.isPublished);
 
     if (selectedCategory !== 'all') {
       result = result.filter(a => a.category === selectedCategory || a.tags.includes(selectedCategory));

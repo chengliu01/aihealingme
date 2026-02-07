@@ -151,13 +151,40 @@ const SingleHealing = () => {
     setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
   }, []);
 
+  // Track whether we should auto-scroll (only after AI messages)
+  const shouldAutoScroll = useRef(false);
+
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    if (!shouldAutoScroll.current) return;
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      shouldAutoScroll.current = false;
+    }, 100);
   }, []);
 
+  // Only scroll when AI finishes typing (isAiTyping goes false → new AI message arrived)
+  const prevAiTyping = useRef(false);
   useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages, isAiTyping, scrollToBottom]);
+    // Scroll on initial greeting load
+    if (chatMessages.length === 1 && chatMessages[0].role === 'ai') {
+      shouldAutoScroll.current = true;
+      scrollToBottom();
+    }
+    // Scroll when AI finishes responding
+    if (prevAiTyping.current && !isAiTyping) {
+      shouldAutoScroll.current = true;
+      scrollToBottom();
+    }
+    prevAiTyping.current = isAiTyping;
+  }, [isAiTyping, chatMessages, scrollToBottom]);
+
+  // Scroll when duration picker appears
+  useEffect(() => {
+    if (showDurationPicker) {
+      shouldAutoScroll.current = true;
+      scrollToBottom();
+    }
+  }, [showDurationPicker, scrollToBottom]);
 
   // ======================== Handlers ========================
 
@@ -328,7 +355,7 @@ const SingleHealing = () => {
       <div>
         <SectionLabel label="情绪强度" required />
         <div className="bg-white/60 rounded-2xl p-4 border border-black/[0.04]">
-          <div className="flex items-center gap-2 sm:gap-3 mb-3">
+          <div className="flex items-center justify-between mb-3">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
               <button
                 key={n}
@@ -345,10 +372,10 @@ const SingleHealing = () => {
               </button>
             ))}
           </div>
-          <div className="flex justify-between text-[11px] text-neutral-400">
-            <span>😌 轻微</span>
-            <span>😰 中等</span>
-            <span>😫 强烈</span>
+          <div className="grid grid-cols-10 gap-0 text-[11px] text-neutral-400 items-center">
+            <span className="col-start-1 col-span-2 text-center">😌 轻微</span>
+            <span className="col-start-5 col-span-2 text-center">😰 中等</span>
+            <span className="col-start-9 col-span-2 text-center">😫 强烈</span>
           </div>
         </div>
       </div>

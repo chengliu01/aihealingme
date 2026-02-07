@@ -10,6 +10,7 @@ import Profile from '@/pages/Profile';
 import AudioPlayer from '@/pages/AudioPlayer';
 import SingleHealing from '@/pages/SingleHealing';
 import PlanHealing from '@/pages/PlanHealing';
+import PlanDetail from '@/pages/PlanDetail';
 import Onboarding from '@/pages/Onboarding';
 import Settings from '@/pages/Settings';
 import { useAuthStore } from '@/store/authStore';
@@ -55,6 +56,7 @@ function App() {
             <Route path="create" element={<Create />} />
             <Route path="create/single" element={<SingleHealing />} />
             <Route path="create/plan" element={<PlanHealing />} />
+            <Route path="plan/:id" element={<PlanDetail />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="audio/:id" element={<AudioPlayer />} />
