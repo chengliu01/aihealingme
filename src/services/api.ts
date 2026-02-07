@@ -96,6 +96,22 @@ export const authAPI = {
       body: JSON.stringify(passwords),
     });
   },
+
+  completeOnboarding: async (data: {
+    nickname: string;
+    lifeStage: string;
+    healingPreference: string;
+    motto?: string;
+  }) => {
+    return apiRequest<{
+      success: boolean;
+      data: { user: any };
+      message: string;
+    }>('/auth/onboarding', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // User API

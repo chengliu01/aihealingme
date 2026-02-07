@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
 import Layout from '@/components/Layout';
@@ -10,7 +10,20 @@ import Profile from '@/pages/Profile';
 import AudioPlayer from '@/pages/AudioPlayer';
 import SingleHealing from '@/pages/SingleHealing';
 import PlanHealing from '@/pages/PlanHealing';
+import Onboarding from '@/pages/Onboarding';
 import { useAuthStore } from '@/store/authStore';
+
+// Guard: redirect to onboarding if not completed
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, needsOnboarding } = useAuthStore();
+  const location = useLocation();
+
+  if (isAuthenticated && needsOnboarding && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function App() {
   const { getCurrentUser } = useAuthStore();
@@ -28,7 +41,14 @@ function App() {
       <ScrollToTop />
       <AnimatePresence mode="wait">
         <Routes>
-          <Route path="/" element={<Layout />}>
+          {/* Onboarding route - standalone, no layout */}
+          <Route path="/onboarding" element={<Onboarding />} />
+
+          <Route path="/" element={
+            <OnboardingGuard>
+              <Layout />
+            </OnboardingGuard>
+          }>
             <Route index element={<Home />} />
             <Route path="community" element={<Community />} />
             <Route path="create" element={<Create />} />

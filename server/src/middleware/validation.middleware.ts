@@ -60,7 +60,40 @@ export const updateProfileValidation: ValidationChain[] = [
     .optional()
     .trim()
     .isURL()
-    .withMessage('Avatar must be a valid URL')
+    .withMessage('Avatar must be a valid URL'),
+
+  body('nickname')
+    .optional()
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Nickname cannot exceed 20 characters'),
+];
+
+export const onboardingValidation: ValidationChain[] = [
+  body('nickname')
+    .trim()
+    .notEmpty()
+    .withMessage('Nickname is required')
+    .isLength({ max: 20 })
+    .withMessage('Nickname cannot exceed 20 characters'),
+
+  body('lifeStage')
+    .notEmpty()
+    .withMessage('Life stage is required')
+    .isIn(['student', 'career_start', 'career_mid', 'free_life'])
+    .withMessage('Invalid life stage'),
+
+  body('healingPreference')
+    .notEmpty()
+    .withMessage('Healing preference is required')
+    .isIn(['rational', 'warm'])
+    .withMessage('Invalid healing preference'),
+
+  body('motto')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Motto cannot exceed 100 characters'),
 ];
 
 export const createAudioValidation: ValidationChain[] = [

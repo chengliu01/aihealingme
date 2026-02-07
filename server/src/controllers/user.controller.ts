@@ -34,7 +34,7 @@ export const getUserProfile = async (req: Request, res: Response, next: NextFunc
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
-    const { username, bio, avatar } = req.body;
+    const { username, bio, avatar, nickname, lifeStage, healingPreference, motto } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -52,6 +52,10 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 
     if (bio !== undefined) user.bio = bio;
     if (avatar !== undefined) user.avatar = avatar;
+    if (nickname !== undefined) user.nickname = nickname;
+    if (lifeStage !== undefined) user.lifeStage = lifeStage;
+    if (healingPreference !== undefined) user.healingPreference = healingPreference;
+    if (motto !== undefined) user.motto = motto;
 
     await user.save();
 

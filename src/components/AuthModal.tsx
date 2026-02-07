@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
@@ -10,6 +11,7 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+  const navigate = useNavigate();
   const { login, register, isLoading, error, clearError } = useAuthStore();
   const [isLoginMode, setIsLoginMode] = React.useState(initialMode === 'login');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -36,6 +38,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       onClose();
       // Reset form
       setFormData({ username: '', email: '', password: '' });
+      
+      // Redirect to onboarding if needed (new registration or login without completed onboarding)
+      const state = useAuthStore.getState();
+      if (state.needsOnboarding) {
+        navigate('/onboarding');
+      }
     } catch (err) {
       // Error is handled by the store
       console.error('Auth error:', err);

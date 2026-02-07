@@ -1,12 +1,25 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+// 生命周期阶段
+export type LifeStage = 'student' | 'career_start' | 'career_mid' | 'free_life';
+
+// 疗愈偏好
+export type HealingPreference = 'rational' | 'warm';
+
 export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
   avatar?: string;
   bio?: string;
+  // 注册引导信息
+  nickname?: string;
+  lifeStage?: LifeStage;
+  healingPreference?: HealingPreference;
+  motto?: string;
+  onboardingCompleted: boolean;
+  // 社交
   favoriteAudios: mongoose.Types.ObjectId[];
   createdAudios: mongoose.Types.ObjectId[];
   followers: mongoose.Types.ObjectId[];
@@ -48,6 +61,32 @@ const userSchema = new Schema<IUser>(
       type: String,
       maxlength: [200, 'Bio cannot exceed 200 characters'],
       default: ''
+    },
+    // 注册引导字段
+    nickname: {
+      type: String,
+      trim: true,
+      maxlength: [20, 'Nickname cannot exceed 20 characters'],
+      default: ''
+    },
+    lifeStage: {
+      type: String,
+      enum: ['student', 'career_start', 'career_mid', 'free_life'],
+      default: undefined
+    },
+    healingPreference: {
+      type: String,
+      enum: ['rational', 'warm'],
+      default: undefined
+    },
+    motto: {
+      type: String,
+      maxlength: [100, 'Motto cannot exceed 100 characters'],
+      default: ''
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false
     },
     favoriteAudios: [{
       type: Schema.Types.ObjectId,

@@ -3,13 +3,15 @@ import {
   register,
   login,
   getCurrentUser,
-  updatePassword
+  updatePassword,
+  completeOnboarding
 } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import {
   registerValidation,
   loginValidation,
-  updatePasswordValidation
+  updatePasswordValidation,
+  onboardingValidation
 } from '../middleware/validation.middleware.js';
 import { validate } from '../middleware/validate.middleware.js';
 
@@ -22,5 +24,6 @@ router.post('/login', loginValidation, validate, login);
 // Protected routes
 router.get('/me', authenticate, getCurrentUser);
 router.put('/password', authenticate, updatePasswordValidation, validate, updatePassword);
+router.post('/onboarding', authenticate, onboardingValidation, validate, completeOnboarding);
 
 export default router;

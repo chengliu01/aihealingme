@@ -11,6 +11,20 @@ const generateToken = (userId: string): string => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
+// Helper: format user response
+const formatUserResponse = (user: IUser) => ({
+  id: user._id,
+  username: user.username,
+  email: user.email,
+  avatar: user.avatar,
+  bio: user.bio,
+  nickname: user.nickname,
+  lifeStage: user.lifeStage,
+  healingPreference: user.healingPreference,
+  motto: user.motto,
+  onboardingCompleted: user.onboardingCompleted,
+});
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -28,7 +42,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     const user = await User.create({
       username,
       email,
-      password
+      password,
+      onboardingCompleted: false,
     });
 
     // Generate token
@@ -37,13 +52,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     res.status(201).json({
       success: true,
       data: {
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-          bio: user.bio
-        },
+        user: formatUserResponse(user),
         token
       },
       message: 'User registered successfully'
@@ -78,16 +87,42 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     res.json({
       success: true,
       data: {
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-          bio: user.bio
-        },
+        user: formatUserResponse(user),
         token
       },
       message: 'Login successful'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Complete onboarding questionnaire
+// @route   POST /api/auth/onboarding
+// @access  Private
+export const completeOnboarding = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id;
+    const { nickname, lifeStage, healingPreference, motto } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new ApiError(404, 'User not found');
+    }
+
+    // Update onboarding fields
+    if (nickname) user.nickname = nickname;
+    if (lifeStage) user.lifeStage = lifeStage;
+    if (healingPreference) user.healingPreference = healingPreference;
+    if (motto !== undefined) user.motto = motto;
+    user.onboardingCompleted = true;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      data: { user: formatUserResponse(user) },
+      message: 'Onboarding completed successfully'
     });
   } catch (error) {
     next(error);
