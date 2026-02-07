@@ -102,6 +102,15 @@ export default {
           '100%': { backgroundPosition: '200% 0' },
         },
       },
+      backdropBlur: {
+        xs: '2px',
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
+        xl: '16px',
+        '2xl': '24px',
+        '3xl': '40px',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'mesh': 'linear-gradient(to right, #e0f2fe, #dbeafe, #bfdbfe, #cffafe)',

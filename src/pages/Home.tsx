@@ -175,78 +175,155 @@ const Home = () => {
           {/* 柔和的背景色 */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#faf9f5] via-[#f5f5f0] to-[#f0efe8]" />
           
-          {/* 背景图案层 - 初始状态很淡 */}
-          <div className="absolute inset-0 opacity-100">
+          {/* 背景图案层 - 水彩花瓣式有机形状 */}
+          <div className="absolute inset-0">
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice">
               <defs>
-                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#c8e0c8" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#b8d8b8" stopOpacity="0.3" />
+                {/* 柔和渐变 - 温暖疗愈色系 */}
+                {/* 薄荷绿 - 平静、疗愈 */}
+                <linearGradient id="petal-sage" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#c5d8c0" stopOpacity="0.55" />
+                  <stop offset="50%" stopColor="#d0e0c8" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#b8d0b0" stopOpacity="0.25" />
                 </linearGradient>
-                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#c8d8e8" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#b8c8d8" stopOpacity="0.3" />
+                {/* 薰衣草紫 - 放松、冥想 */}
+                <linearGradient id="petal-lavender" x1="20%" y1="0%" x2="80%" y2="100%">
+                  <stop offset="0%" stopColor="#d4c0dd" stopOpacity="0.5" />
+                  <stop offset="50%" stopColor="#cbb8d8" stopOpacity="0.38" />
+                  <stop offset="100%" stopColor="#bfb0cc" stopOpacity="0.22" />
                 </linearGradient>
-                <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#e8c8d8" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#dcb8c8" stopOpacity="0.3" />
+                {/* 玫瑰暖粉 - 关爱、温柔 */}
+                <linearGradient id="petal-rose" x1="0%" y1="20%" x2="100%" y2="80%">
+                  <stop offset="0%" stopColor="#e8ccd8" stopOpacity="0.45" />
+                  <stop offset="50%" stopColor="#e0c0d0" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#d8b8c8" stopOpacity="0.2" />
                 </linearGradient>
-                <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#e8e0c8" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#dcd4b8" stopOpacity="0.3" />
+                {/* 天空蓝 - 宁静、呼吸 */}
+                <linearGradient id="petal-sky" x1="0%" y1="0%" x2="80%" y2="100%">
+                  <stop offset="0%" stopColor="#c0d4e4" stopOpacity="0.48" />
+                  <stop offset="50%" stopColor="#b8cce0" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#aec4d8" stopOpacity="0.2" />
                 </linearGradient>
+                {/* 暖杏色 - 温暖、拥抱 */}
+                <linearGradient id="petal-peach" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#edd8c8" stopOpacity="0.45" />
+                  <stop offset="50%" stopColor="#e8d0be" stopOpacity="0.32" />
+                  <stop offset="100%" stopColor="#e0c8b0" stopOpacity="0.18" />
+                </linearGradient>
+                
+                {/* 高斯模糊 - 水彩边缘效果 */}
+                <filter id="watercolor">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
+                </filter>
+                <filter id="watercolor-soft">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="12" />
+                </filter>
               </defs>
               
-              {/* 水滴形状 1 - 左上淡黄绿 */}
-              <ellipse cx="120" cy="150" rx="180" ry="120" fill="url(#grad1)" opacity="0.9" />
-              {/* 水滴形状 2 - 左中淡蓝 */}
-              <ellipse cx="280" cy="380" rx="140" ry="90" fill="url(#grad2)" opacity="0.85" />
-              {/* 水滴形状 3 - 中左淡紫粉 */}
-              <ellipse cx="480" cy="280" rx="160" ry="100" fill="url(#grad3)" opacity="0.9" />
-              {/* 水滴形状 4 - 中上淡青绿 */}
-              <ellipse cx="720" cy="120" rx="200" ry="80" fill="url(#grad1)" opacity="0.8" />
-              {/* 水滴形状 5 - 中右淡蓝 */}
-              <ellipse cx="850" cy="350" rx="150" ry="110" fill="url(#grad2)" opacity="0.85" />
-              {/* 水滴形状 6 - 右上淡紫 */}
-              <ellipse cx="1100" cy="180" rx="170" ry="95" fill="url(#grad3)" opacity="0.9" />
-              {/* 水滴形状 7 - 右下淡黄 */}
-              <ellipse cx="1250" cy="420" rx="140" ry="85" fill="url(#grad4)" opacity="0.8" />
-              {/* 水滴形状 8 - 底部淡蓝绿 */}
-              <ellipse cx="600" cy="480" rx="180" ry="70" fill="url(#grad2)" opacity="0.75" />
-              {/* 水滴形状 9 - 右侧中间淡绿 */}
-              <ellipse cx="1000" cy="320" rx="130" ry="100" fill="url(#grad1)" opacity="0.8" />
+              {/* ========= 左侧区域 ========= */}
+              {/* 大片薄荷叶 - 左上角，向右下延伸 */}
+              <path
+                d="M-40,80 Q120,-30 320,60 Q400,100 360,220 Q320,340 140,300 Q-20,260 -60,160 Z"
+                fill="url(#petal-sage)"
+                filter="url(#watercolor)"
+                opacity="0.7"
+              />
+              
+              {/* 薰衣草花瓣 - 左中偏上，优雅弧形 */}
+              <path
+                d="M80,200 Q200,100 350,180 Q440,240 380,360 Q300,440 160,380 Q60,320 80,200 Z"
+                fill="url(#petal-lavender)"
+                filter="url(#watercolor)"
+                opacity="0.65"
+              />
+              
+              {/* 小玫瑰花瓣 - 左下 */}
+              <path
+                d="M60,380 Q180,320 260,400 Q320,470 240,520 Q140,540 60,480 Q20,440 60,380 Z"
+                fill="url(#petal-rose)"
+                filter="url(#watercolor-soft)"
+                opacity="0.5"
+              />
+
+              {/* ========= 中间区域 ========= */}
+              {/* 大天空蓝色弧叶 - 中上方 */}
+              <path
+                d="M500,20 Q680,-40 820,60 Q920,130 860,240 Q780,320 620,280 Q460,240 440,120 Q430,60 500,20 Z"
+                fill="url(#petal-sky)"
+                filter="url(#watercolor)"
+                opacity="0.6"
+              />
+              
+              {/* 暖杏色水滴 - 中间偏下 */}
+              <path
+                d="M520,320 Q620,260 740,310 Q830,360 790,460 Q730,530 600,510 Q480,480 460,400 Q450,350 520,320 Z"
+                fill="url(#petal-peach)"
+                filter="url(#watercolor)"
+                opacity="0.5"
+              />
+              
+              {/* 薄荷绿圆叶 - 中间 */}
+              <path
+                d="M600,160 Q720,120 780,200 Q830,280 740,340 Q640,370 580,300 Q530,230 600,160 Z"
+                fill="url(#petal-sage)"
+                filter="url(#watercolor-soft)"
+                opacity="0.45"
+              />
+
+              {/* ========= 右侧区域 ========= */}
+              {/* 大薰衣草花瓣 - 右上角 */}
+              <path
+                d="M1050,0 Q1200,-30 1340,80 Q1460,180 1380,300 Q1280,380 1140,320 Q1020,260 1000,140 Q990,60 1050,0 Z"
+                fill="url(#petal-lavender)"
+                filter="url(#watercolor)"
+                opacity="0.65"
+              />
+              
+              {/* 天空蓝弧线 - 右侧中间 */}
+              <path
+                d="M1100,220 Q1240,180 1360,260 Q1460,330 1400,420 Q1320,490 1180,450 Q1060,410 1060,310 Q1060,250 1100,220 Z"
+                fill="url(#petal-sky)"
+                filter="url(#watercolor)"
+                opacity="0.55"
+              />
+              
+              {/* 玫瑰暖粉 - 右下角延伸 */}
+              <path
+                d="M1150,400 Q1280,360 1400,430 Q1500,500 1440,580 Q1360,640 1220,600 Q1100,560 1080,470 Q1070,420 1150,400 Z"
+                fill="url(#petal-rose)"
+                filter="url(#watercolor-soft)"
+                opacity="0.5"
+              />
+              
+              {/* 薄荷绿 - 底部右侧 */}
+              <path
+                d="M900,450 Q1020,400 1100,470 Q1160,530 1080,590 Q980,620 900,560 Q850,510 900,450 Z"
+                fill="url(#petal-sage)"
+                filter="url(#watercolor-soft)"
+                opacity="0.4"
+              />
+
+              {/* ========= 点缀细节 ========= */}
+              {/* 底部大弧线 - 暖杏 */}
+              <path
+                d="M300,480 Q500,420 700,470 Q860,520 800,590 Q680,640 480,610 Q280,580 260,520 Q250,490 300,480 Z"
+                fill="url(#petal-peach)"
+                filter="url(#watercolor-soft)"
+                opacity="0.35"
+              />
+              
+              {/* 顶部中间薄荷点缀 */}
+              <path
+                d="M380,30 Q460,-10 520,40 Q560,90 500,130 Q420,150 380,100 Q350,60 380,30 Z"
+                fill="url(#petal-sage)"
+                filter="url(#watercolor-soft)"
+                opacity="0.4"
+              />
             </svg>
           </div>
           
-          {/* 探照灯遮罩层 - 跟随鼠标 */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'rgba(245, 245, 240, 0.88)',
-              maskImage: useMotionValue(`radial-gradient(420px 420px at 50% 50%, transparent 0%, black 100%)`),
-              WebkitMaskImage: useMotionValue(`radial-gradient(420px 420px at 50% 50%, transparent 0%, black 100%)`),
-            }}
-          >
-            {/* 动态更新遮罩位置 */}
-            <MaskUpdater x={smoothX} y={smoothY} />
-          </motion.div>
-          
-          {/* 探照灯光晕 - 跟随鼠标 */}
-          <motion.div
-            className="absolute pointer-events-none rounded-full"
-            style={{
-              width: 420,
-              height: 420,
-              x: smoothX,
-              y: smoothY,
-              translateX: '-50%',
-              translateY: '-50%',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)',
-            }}
-          />
-          
-          {/* 自定义光标 - 柔和光圈（仅在有鼠标移动时显示） */}
-          <CursorDot x={smoothX} y={smoothY} />
+          {/* 探照灯遮罩层 - 半透明覆盖 + 径向渐变挖孔 */}
+          <SpotlightOverlay x={smoothX} y={smoothY} />
           
           {/* 内容区 */}
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center py-16 sm:py-20">
@@ -261,9 +338,7 @@ const Home = () => {
                 但你的每声叹息都值得被听见
               </h1>
               <p className="text-[16px] sm:text-[18px] text-neutral-600/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-                24/7 情绪共振
-                <br />
-                是这一刻的温柔出口，也是每一天的生长力量。
+                24/7 情绪共振, 是这一刻的温柔出口，也是每一天的生长力量。
               </p>
             </motion.div>
 
@@ -315,16 +390,20 @@ const Home = () => {
         </div>
       </motion.section>
 
-      {/* 渐变分隔线 */}
+      {/* Hero 底部分割线 + 柔和过渡 */}
       <div className="relative">
+        {/* 渐变消失分割线 */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <motion.div
             initial={{ opacity: 0, scaleX: 0 }}
             animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="h-px bg-gradient-to-r from-transparent via-neutral-200/60 to-transparent"
+            transition={{ duration: 1.2, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className="h-px bg-gradient-to-r from-transparent via-neutral-300/40 to-transparent"
           />
         </div>
+        
+        {/* 柔和过渡渐变 */}
+        <div className="h-16 bg-gradient-to-b from-[#f0efe8]/20 to-[#f5f5f0]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
@@ -643,79 +722,44 @@ const Home = () => {
   );
 };
 
-// 遮罩更新组件 - 用于探照灯效果
-interface MaskUpdaterProps {
+// 探照灯遮罩组件 - 用半透明覆盖层 + 径向渐变挖孔实现
+interface SpotlightOverlayProps {
   x: ReturnType<typeof useSpring>;
   y: ReturnType<typeof useSpring>;
 }
 
-const MaskUpdater = ({ x, y }: MaskUpdaterProps) => {
-  const divRef = useRef<HTMLDivElement>(null);
+const SpotlightOverlay = ({ x, y }: SpotlightOverlayProps) => {
+  const overlayRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    const updateMask = () => {
-      if (divRef.current) {
-        const latestX = x.get();
-        const latestY = y.get();
-        // 柔和的探照灯边缘
-        const maskValue = `radial-gradient(420px 420px at ${latestX}px ${latestY}px, transparent 0%, transparent 30%, rgba(245, 245, 240, 0.7) 60%, rgba(245, 245, 240, 0.95) 100%)`;
-        divRef.current.style.maskImage = maskValue;
-        divRef.current.style.webkitMaskImage = maskValue;
-      }
+    const update = () => {
+      if (!overlayRef.current) return;
+      const px = x.get();
+      const py = y.get();
+      
+      // 径向渐变：中心完全透明（露出清晰图案），向外逐渐显示遮罩色（盖住图案）
+      overlayRef.current.style.background = `radial-gradient(
+        circle 420px at ${px}px ${py}px,
+        transparent 0%,
+        transparent 30%,
+        rgba(245, 245, 240, 0.45) 55%,
+        rgba(245, 245, 240, 0.72) 75%,
+        rgba(245, 245, 240, 0.88) 100%
+      )`;
     };
     
-    const unsubscribeX = x.on("change", updateMask);
-    const unsubscribeY = y.on("change", updateMask);
+    const unsX = x.on('change', update);
+    const unsY = y.on('change', update);
+    update();
     
-    // 初始位置
-    updateMask();
-    
-    return () => {
-      unsubscribeX();
-      unsubscribeY();
-    };
+    return () => { unsX(); unsY(); };
   }, [x, y]);
-  
-  return <div ref={divRef} className="absolute inset-0 bg-[#f5f5f0]" />;
-};
-
-// 自定义光标组件 - 只在鼠标进入后才显示
-interface CursorDotProps {
-  x: ReturnType<typeof useSpring>;
-  y: ReturnType<typeof useSpring>;
-}
-
-const CursorDot = ({ x, y }: CursorDotProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-  
-  useEffect(() => {
-    const unsubscribeX = x.on("change", (latestX) => {
-      const latestY = y.get();
-      // 只有在位置有效且不是初始默认值时才显示
-      if (latestX > 0 && latestY > 0 && latestX < 2000) {
-        setIsVisible(true);
-      }
-    });
-    
-    return () => {
-      unsubscribeX();
-    };
-  }, [x, y]);
-  
-  if (!isVisible) return null;
   
   return (
-    <motion.div
-      className="absolute pointer-events-none z-50"
-      style={{
-        x,
-        y,
-        translateX: '-50%',
-        translateY: '-50%',
-      }}
-    >
-      <div className="w-3 h-3 rounded-full bg-neutral-800/60 shadow-sm" />
-    </motion.div>
+    <div
+      ref={overlayRef}
+      className="absolute inset-0 pointer-events-none z-[5]"
+    />
   );
 };
 
