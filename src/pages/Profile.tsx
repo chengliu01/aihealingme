@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Heart, Music2, Calendar, Play, Headphones, MoreVertical, Edit, Trash2, Globe, Quote, Camera } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
-import { formatDuration, formatNumber, formatDate } from '@/utils';
+import { formatDuration, formatNumber, formatDate, audioTagOptions } from '@/utils';
 import { userAPI } from '@/services/api';
 import Header from '@/components/Header';
 
@@ -29,7 +29,23 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<'works' | 'favorites' | 'plans'>('works');
   const [showActionsMenu, setShowActionsMenu] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [selectedFavoriteTag, setSelectedFavoriteTag] = useState<string>('all');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // 获取收藏中实际存在的标签
+  const favoriteTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    favoriteAudios.forEach(audio => {
+      audio.tags.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet);
+  }, [favoriteAudios]);
+
+  // 根据标签过滤收藏
+  const filteredFavorites = useMemo(() => {
+    if (selectedFavoriteTag === 'all') return favoriteAudios;
+    return favoriteAudios.filter(audio => audio.tags.includes(selectedFavoriteTag));
+  }, [favoriteAudios, selectedFavoriteTag]);
 
   // 合并 authStore 用户信息
   const displayName = authUser?.nickname || authUser?.username || '心灵旅人';
@@ -381,7 +397,44 @@ const Profile = () => {
             </div>
           ))}
 
-          {activeTab === 'favorites' && (favoriteAudios.length > 0 ? favoriteAudios.map((audio, index) => (
+          {/* 收藏标签筛选 */}
+          {activeTab === 'favorites' && favoriteAudios.length > 0 && (
+            <div className="mb-4 -mt-1">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <motion.button
+                  onClick={() => setSelectedFavoriteTag('all')}
+                  whileTap={{ scale: 0.96 }}
+                  className={`px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
+                    selectedFavoriteTag === 'all'
+                      ? 'bg-neutral-900 text-white'
+                      : 'bg-white/70 text-neutral-600 border border-black/[0.06] hover:bg-white'
+                  }`}
+                >
+                  全部
+                </motion.button>
+                {favoriteTags.map(tag => {
+                  const tagOption = audioTagOptions.find(t => t.value === tag || t.label === tag);
+                  return (
+                    <motion.button
+                      key={tag}
+                      onClick={() => setSelectedFavoriteTag(tag)}
+                      whileTap={{ scale: 0.96 }}
+                      className={`px-4 py-2 rounded-full text-[13px] font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ${
+                        selectedFavoriteTag === tag
+                          ? 'bg-neutral-900 text-white'
+                          : 'bg-white/70 text-neutral-600 border border-black/[0.06] hover:bg-white'
+                      }`}
+                    >
+                      {tagOption?.icon && <span>{tagOption.icon}</span>}
+                      {tagOption?.label || tag}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'favorites' && (filteredFavorites.length > 0 ? filteredFavorites.map((audio, index) => (
             <motion.div 
               key={audio.id} 
               initial={{ opacity: 0, y: 12 }} 
@@ -420,7 +473,11 @@ const Profile = () => {
                 </div>
               </Link>
             </motion.div>
-          )) : (
+          )) : favoriteAudios.length > 0 ? (
+            <div className="text-center py-16">
+              <p className="text-[14px] text-neutral-500">该标签下暂无收藏</p>
+            </div>
+          ) : (
             <div className="text-center py-20">
               <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-4">
                 <Heart size={24} className="text-neutral-300" strokeWidth={1.5} />
