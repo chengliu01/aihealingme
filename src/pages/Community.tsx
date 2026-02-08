@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '@/components/Header';
@@ -23,8 +23,48 @@ const Community = () => {
   const [layout, setLayout] = useState<LayoutType>('grid');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
+  
+  // 分类容器 ref 和可见数量计算
+  const categoryContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleCategoryCount, setVisibleCategoryCount] = useState(categoryOptions.length);
+  
+  // 根据容器宽度计算能显示的分类数量
+  useEffect(() => {
+    const calculateVisibleCount = () => {
+      if (!categoryContainerRef.current) return;
+      
+      const containerWidth = categoryContainerRef.current.offsetWidth;
+      // 估算每个标签的平均宽度（px-4 = 16px padding + 文字宽度估算约50px + gap 8px）
+      const avgTagWidth = 85;
+      // "更多"按钮宽度约 70px
+      const moreButtonWidth = 70;
+      // 可用宽度减去"更多"按钮
+      const availableWidth = containerWidth - moreButtonWidth - 20; // 20px 安全边距
+      
+      const count = Math.max(3, Math.floor(availableWidth / avgTagWidth));
+      setVisibleCategoryCount(Math.min(count, categoryOptions.length));
+    };
+    
+    calculateVisibleCount();
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', calculateVisibleCount);
+    
+    // 使用 ResizeObserver 监听容器变化
+    const resizeObserver = new ResizeObserver(calculateVisibleCount);
+    if (categoryContainerRef.current) {
+      resizeObserver.observe(categoryContainerRef.current);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', calculateVisibleCount);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
-  const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
+  const displayedCategories = isCategoryExpanded 
+    ? categoryOptions 
+    : categoryOptions.slice(0, visibleCategoryCount);
 
   const filteredAudios = useMemo(() => {
     // 只显示已发布的音频
@@ -165,7 +205,7 @@ const Community = () => {
           transition={{ duration: 0.4, delay: 0.15 }}
         >
           {/* 分类 */}
-          <div className="flex flex-wrap gap-2 pb-3">
+          <div ref={categoryContainerRef} className="flex flex-wrap gap-2 pb-3">
             {displayedCategories.map((cat) => (
               <button
                 key={cat.value}
@@ -183,7 +223,8 @@ const Community = () => {
               </button>
             ))}
             
-            {/* 更多按钮 - 始终显示在最后 */}
+            {/* 更多按钮 - 只有当有隐藏分类时才显示 */}
+            {categoryOptions.length > visibleCategoryCount && (
             <button
               onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
               className="px-3 py-2 rounded-full bg-white/55 text-neutral-400 hover:text-neutral-600 hover:bg-white/70 border border-black/[0.04] shadow-glass transition-colors flex items-center gap-1"
@@ -197,6 +238,7 @@ const Community = () => {
                 <ChevronDown size={14} strokeWidth={2} />
               )}
             </button>
+            )}
           </div>
 
           {/* 排序 */}

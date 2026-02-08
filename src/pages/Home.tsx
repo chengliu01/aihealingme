@@ -59,6 +59,44 @@ const Home = () => {
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
   
+  // 分类容器 ref 和可见数量计算
+  const categoryContainerRef = useRef<HTMLDivElement>(null);
+  const [visibleCategoryCount, setVisibleCategoryCount] = useState(categoryOptions.length);
+  
+  // 根据容器宽度计算能显示的分类数量
+  useEffect(() => {
+    const calculateVisibleCount = () => {
+      if (!categoryContainerRef.current) return;
+      
+      const containerWidth = categoryContainerRef.current.offsetWidth;
+      // 估算每个标签的平均宽度（px-5 = 20px padding + 文字宽度估算约60px + gap 10px）
+      const avgTagWidth = 95;
+      // "更多"按钮宽度约 70px
+      const moreButtonWidth = 70;
+      // 可用宽度减去"更多"按钮
+      const availableWidth = containerWidth - moreButtonWidth - 20; // 20px 安全边距
+      
+      const count = Math.max(3, Math.floor(availableWidth / avgTagWidth));
+      setVisibleCategoryCount(Math.min(count, categoryOptions.length));
+    };
+    
+    calculateVisibleCount();
+    
+    // 监听窗口大小变化
+    window.addEventListener('resize', calculateVisibleCount);
+    
+    // 使用 ResizeObserver 监听容器变化
+    const resizeObserver = new ResizeObserver(calculateVisibleCount);
+    if (categoryContainerRef.current) {
+      resizeObserver.observe(categoryContainerRef.current);
+    }
+    
+    return () => {
+      window.removeEventListener('resize', calculateVisibleCount);
+      resizeObserver.disconnect();
+    };
+  }, []);
+  
   // 鼠标位置追踪 - 用于探照灯效果
   const heroRef = useRef<HTMLElement>(null);
   const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 720);
@@ -107,7 +145,9 @@ const Home = () => {
     }
   };
 
-  const displayedCategories = isCategoryExpanded ? categoryOptions : categoryOptions.slice(0, 5);
+  const displayedCategories = isCategoryExpanded 
+    ? categoryOptions 
+    : categoryOptions.slice(0, visibleCategoryCount);
 
   const filteredAudios = activeCategory === 'all' 
     ? audios 
@@ -664,7 +704,7 @@ const Home = () => {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* 分类 - 优化样式 */}
-          <div className="flex flex-wrap gap-2.5 mb-5">
+          <div ref={categoryContainerRef} className="flex flex-wrap gap-2.5 mb-5">
             {displayedCategories.map((cat) => (
               <button
                 key={cat.value}
@@ -682,7 +722,8 @@ const Home = () => {
               </button>
             ))}
             
-            {/* 更多按钮 */}
+            {/* 更多按钮 - 只有当有隐藏分类时才显示 */}
+            {categoryOptions.length > visibleCategoryCount && (
             <button
               onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
               className="px-4 py-2.5 rounded-full bg-white/70 text-neutral-400 hover:text-neutral-600 hover:bg-white border border-white/60 shadow-sm transition-all flex items-center gap-1"
@@ -696,6 +737,7 @@ const Home = () => {
                 <ChevronDown size={14} strokeWidth={2} />
               )}
             </button>
+            )}
           </div>
           
           {/* 音频网格 */}
