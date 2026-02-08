@@ -30,6 +30,8 @@ export interface HealingAudio {
   waveform?: number[];  // 音频波形数据
   backgroundColor?: string;  // 主题背景色
   shareText?: string;  // 分享时用户附带的输入文本
+  commentCount?: number;  // 后端返回的评论数量
+  isLikedByCurrentUser?: boolean;  // 当前用户是否已点赞
 }
 
 // 为了兼容，保留别名

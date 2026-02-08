@@ -5,14 +5,16 @@ import { Heart, Play, Pause, Headphones, MessageCircle, Clock, MessageSquare } f
 import type { HealingAudio } from '@/types';
 import { formatDuration, formatNumber, formatDate, audioTagOptions } from '@/utils';
 import { useStore } from '@/store';
+import { audioAPI } from '@/services/api';
 
 interface AudioCardProps {
   audio: HealingAudio;
   index?: number;
   layout?: 'grid' | 'list';
+  onLikeUpdate?: (audioId: string, liked: boolean) => void;
 }
 
-const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
+const AudioCard = ({ audio, index = 0, layout = 'grid', onLikeUpdate }: AudioCardProps) => {
   const navigate = useNavigate();
   const { 
     currentlyPlaying, 
@@ -23,13 +25,17 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
   
   const isCurrentlyPlaying = currentlyPlaying?.id === audio.id;
   const [localLikes, setLocalLikes] = useState(audio.likes);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(audio.isLikedByCurrentUser || false);
+  const [isLiking, setIsLiking] = useState(false);
   
   // 获取标签显示信息
   const getTagDisplay = (tagValue: string) => {
     const tag = audioTagOptions.find(t => t.value === tagValue);
     return tag ? { label: tag.label, icon: tag.icon } : { label: tagValue, icon: '' };
   };
+
+  // 评论数量（支持后端返回的 commentCount 字段）
+  const commentCount = (audio as any).commentCount ?? audio.comments?.length ?? 0;
 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -49,15 +55,29 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
     navigate(`/user/${audio.author.id}`);
   };
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (liked) {
-      setLocalLikes(prev => prev - 1);
-      setLiked(false);
-    } else {
-      setLocalLikes(prev => prev + 1);
-      setLiked(true);
+    
+    if (isLiking) return;
+    
+    // 乐观更新
+    const newLiked = !liked;
+    setLiked(newLiked);
+    setLocalLikes(prev => newLiked ? prev + 1 : Math.max(0, prev - 1));
+    onLikeUpdate?.(audio.id, newLiked);
+    
+    try {
+      setIsLiking(true);
+      await audioAPI.toggleLike(audio.id);
+    } catch (error) {
+      // 回滚
+      setLiked(!newLiked);
+      setLocalLikes(prev => newLiked ? Math.max(0, prev - 1) : prev + 1);
+      onLikeUpdate?.(audio.id, !newLiked);
+      console.warn('Failed to toggle like:', error);
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -177,7 +197,7 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
               </span>
               <span className="flex items-center gap-1">
                 <MessageCircle size={12} />
-                {audio.comments.length}
+                {commentCount}
               </span>
               <span className="flex items-center gap-1">
                 <Clock size={12} />

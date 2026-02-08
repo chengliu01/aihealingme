@@ -229,12 +229,14 @@ export const audioAPI = {
     search?: string;
     page?: number;
     limit?: number;
+    sort?: string;
   }) => {
     const queryParams = new URLSearchParams();
     if (params?.category) queryParams.append('category', params.category);
     if (params?.search) queryParams.append('search', params.search);
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.sort) queryParams.append('sort', params.sort);
 
     const queryString = queryParams.toString();
     return apiRequest<{
@@ -305,5 +307,55 @@ export const audioAPI = {
       success: boolean;
       data: { audios: any[] };
     }>(`/audio/recommended${queryString}`);
+  },
+
+  // Comment APIs
+  getComments: async (audioId: string, params?: { page?: number; limit?: number }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    const queryString = queryParams.toString();
+    return apiRequest<{
+      success: boolean;
+      data: {
+        comments: any[];
+        pagination: {
+          page: number;
+          limit: number;
+          total: number;
+          pages: number;
+        };
+      };
+    }>(`/audio/${audioId}/comments${queryString ? `?${queryString}` : ''}`);
+  },
+
+  addComment: async (audioId: string, content: string, parentComment?: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: { comment: any };
+      message: string;
+    }>(`/audio/${audioId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content, parentComment }),
+    });
+  },
+
+  deleteComment: async (audioId: string, commentId: string) => {
+    return apiRequest<{
+      success: boolean;
+      message: string;
+    }>(`/audio/${audioId}/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  toggleLikeComment: async (audioId: string, commentId: string) => {
+    return apiRequest<{
+      success: boolean;
+      data: { liked: boolean; likesCount: number };
+      message: string;
+    }>(`/audio/${audioId}/comments/${commentId}/like`, {
+      method: 'POST',
+    });
   },
 };

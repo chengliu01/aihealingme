@@ -1,17 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Heart, Play, Pause, SkipBack, SkipForward,
-  Send, MessageCircle, Share2, X, Check, MessageSquare
+  Send, MessageCircle, Share2, X, Check, MessageSquare, Trash2, Loader2, Reply, CornerDownRight
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
+import { audioAPI } from '@/services/api';
 import { formatDuration, formatDate, formatNumber, generateId, audioTagOptions } from '@/utils';
 
 const generateWaveform = () => Array.from({ length: 40 }, () => Math.random() * 0.6 + 0.2);
 
 const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+interface BackendComment {
+  _id: string;
+  content: string;
+  author: {
+    _id: string;
+    username: string;
+    avatar: string;
+    nickname?: string;
+  };
+  likes: string[];
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  createdAt: string;
+  parentComment?: string | null;
+  replies?: BackendComment[];
+}
 
 const AudioPlayer = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,25 +46,15 @@ const AudioPlayer = () => {
     setIsPlaying,
     setCurrentTime,
     currentUser,
-    addComment,
-    likeComment,
     publishAudio
   } = useStore();
   const { user: authUser } = useAuthStore();
   
   const audio = audios.find(a => a.id === id);
 
-  // 使用真实用户数据构建评论作者信息
-  const commentAuthor: import('@/types').User | null = authUser ? {
-    id: (authUser as any)._id || (authUser as any).id || 'unknown',
-    name: authUser.nickname || authUser.username || '匿名用户',
-    avatar: authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.username || 'default'}`,
-    email: authUser.email || '',
-    createdAt: new Date().toISOString(),
-  } : currentUser;
   const isFavorite = favoriteAudios.some(a => a.id === id);
   
-  // 检查是否是当前用户的音频（优先使用 authUser 的 ID）
+  // 检查是否是当前用户的音频
   const currentUserId = authUser ? ((authUser as any)._id || (authUser as any).id) : currentUser?.id;
   const isMyAudio = audio && currentUserId && audio.author.id === currentUserId;
   const canPublish = isMyAudio && !audio?.isPublished;
@@ -57,11 +65,50 @@ const AudioPlayer = () => {
   const [commentInput, setCommentInput] = useState('');
   const [showAllComments, setShowAllComments] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);  
+
+  // 后端评论状态
+  const [backendComments, setBackendComments] = useState<BackendComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [useBackendComments, setUseBackendComments] = useState(true);
+  
+  // 回复状态
+  const [replyingTo, setReplyingTo] = useState<{ commentId: string; authorName: string } | null>(null);
+  const replyInputRef = useRef<HTMLInputElement>(null);
+  
+  // 防止重复点赞
+  const likingCommentIds = useRef<Set<string>>(new Set());
+  
   // 发布模态框状态
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishTags, setPublishTags] = useState<string[]>(audio?.tags || []);
   const [publishDescription, setPublishDescription] = useState(audio?.description || '');
   const [includeShareText, setIncludeShareText] = useState(false);
+
+  // 从后端获取评论
+  const fetchComments = useCallback(async () => {
+    if (!id) return;
+    try {
+      setIsLoadingComments(true);
+      const response = await audioAPI.getComments(id, { limit: 50 });
+      if (response.success && response.data.comments) {
+        setBackendComments(response.data.comments);
+        setCommentCount(response.data.pagination.total);
+        setUseBackendComments(true);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch comments from backend, using local data:', error);
+      setUseBackendComments(false);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
   useEffect(() => {
     if (audio && currentlyPlaying?.id !== audio.id) {
       setCurrentlyPlaying(audio);
@@ -125,22 +172,161 @@ const AudioPlayer = () => {
     );
   };
 
-  const handleSubmitComment = () => {
-    if (!commentInput.trim() || !commentAuthor || !audio) return;
+  const handleSubmitComment = async () => {
+    if (!commentInput.trim() || !audio || !id) return;
     
-    addComment(audio.id, {
-      id: generateId(),
-      content: commentInput.trim(),
-      author: commentAuthor,
-      likes: 0,
-      isLikedByCurrentUser: false,
-      createdAt: new Date().toISOString(),
-    });
+    if (!authUser) {
+      // 未登录提示
+      console.warn('Please login to comment');
+      return;
+    }
+
+    try {
+      setIsSubmittingComment(true);
+      const parentCommentId = replyingTo?.commentId;
+      const response = await audioAPI.addComment(id, commentInput.trim(), parentCommentId || undefined);
+      if (response.success && response.data.comment) {
+        const newComment: BackendComment = {
+          _id: response.data.comment._id,
+          content: response.data.comment.content,
+          author: response.data.comment.author,
+          likes: [],
+          likesCount: 0,
+          isLikedByCurrentUser: false,
+          createdAt: response.data.comment.createdAt,
+          parentComment: parentCommentId || null,
+          replies: [],
+        };
+        if (parentCommentId) {
+          // 回复：添加到父评论的 replies 中
+          setBackendComments(prev => prev.map(c => {
+            if (c._id === parentCommentId) {
+              return { ...c, replies: [...(c.replies || []), newComment] };
+            }
+            return c;
+          }));
+        } else {
+          // 顶级评论
+          setBackendComments(prev => [newComment, ...prev]);
+        }
+        setCommentCount(prev => prev + 1);
+      }
+      setCommentInput('');
+      setReplyingTo(null);
+    } catch (error) {
+      console.error('Failed to submit comment:', error);
+      // 后备：使用本地 store
+      const { addComment } = useStore.getState();
+      const commentAuthor = {
+        id: (authUser as any)._id || (authUser as any).id || 'unknown',
+        name: authUser.nickname || authUser.username || '匿名用户',
+        avatar: authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`,
+        email: authUser.email || '',
+        createdAt: new Date().toISOString(),
+      };
+      addComment(audio.id, {
+        id: generateId(),
+        content: commentInput.trim(),
+        author: commentAuthor,
+        likes: 0,
+        isLikedByCurrentUser: false,
+        createdAt: new Date().toISOString(),
+      });
+      setCommentInput('');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string, parentId?: string) => {
+    if (!id) return;
+    try {
+      await audioAPI.deleteComment(id, commentId);
+      if (parentId) {
+        // 删除回复
+        setBackendComments(prev => prev.map(c => {
+          if (c._id === parentId) {
+            return { ...c, replies: (c.replies || []).filter(r => r._id !== commentId) };
+          }
+          return c;
+        }));
+      } else {
+        // 删除顶级评论（包含的回复数量也要减去）
+        const comment = backendComments.find(c => c._id === commentId);
+        const replyCount = comment?.replies?.length || 0;
+        setBackendComments(prev => prev.filter(c => c._id !== commentId));
+        setCommentCount(prev => Math.max(0, prev - 1 - replyCount));
+        return;
+      }
+      setCommentCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
+  };
+
+  // 点赞/取消点赞评论（包含回复），带防重复点击
+  const handleLikeComment = async (commentId: string, _parentId?: string) => {
+    if (!id || !authUser) return;
+    if (likingCommentIds.current.has(commentId)) return;
+    likingCommentIds.current.add(commentId);
+    
+    const updateLike = (comments: BackendComment[]): BackendComment[] =>
+      comments.map(c => {
+        if (c._id === commentId) {
+          const wasLiked = c.isLikedByCurrentUser;
+          return {
+            ...c,
+            isLikedByCurrentUser: !wasLiked,
+            likesCount: wasLiked ? Math.max(0, c.likesCount - 1) : c.likesCount + 1,
+          };
+        }
+        if (c.replies?.length) {
+          return { ...c, replies: updateLike(c.replies) };
+        }
+        return c;
+      });
+
+    // 乐观更新
+    setBackendComments(prev => updateLike(prev));
+
+    try {
+      await audioAPI.toggleLikeComment(id, commentId);
+    } catch (error) {
+      // 回滚
+      setBackendComments(prev => updateLike(prev));
+      console.error('Failed to like comment:', error);
+    } finally {
+      likingCommentIds.current.delete(commentId);
+    }
+  };
+
+  const handleReply = (commentId: string, authorName: string) => {
+    setReplyingTo({ commentId, authorName });
+    setCommentInput('');
+    // 聚焦输入框
+    setTimeout(() => replyInputRef.current?.focus(), 100);
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
     setCommentInput('');
   };
 
+  const handleCommentAuthorClick = (authorId: string) => {
+    if (authorId === currentUserId) {
+      navigate('/profile');
+    } else {
+      navigate(`/user/${authorId}`);
+    }
+  };
+
   const progressPercent = (currentTime / audio.duration) * 100;
-  const displayedComments = showAllComments ? audio.comments : audio.comments.slice(0, 3);
+  
+  // 评论数据：优先后端，后备本地
+  const displayCommentCount = useBackendComments ? commentCount : audio.comments.length;
+  const allComments = useBackendComments ? backendComments : [];
+  const displayedComments = showAllComments ? allComments : allComments.slice(0, 3);
+  const localDisplayedComments = showAllComments ? audio.comments : audio.comments.slice(0, 3);
   const easeOut = [0.25, 0.1, 0.25, 1];
 
   return (
@@ -428,84 +614,268 @@ const AudioPlayer = () => {
         >
           <div className="flex items-center gap-2 mb-4">
             <MessageCircle size={18} className="text-neutral-600" strokeWidth={1.5} />
-            <h2 className="text-[15px] font-semibold text-neutral-800">评论 ({audio.comments.length})</h2>
+            <h2 className="text-[15px] font-semibold text-neutral-800">评论 ({displayCommentCount})</h2>
           </div>
           
           {/* 评论输入 */}
           <div className="flex gap-3 mb-4">
             <img
-              src={commentAuthor?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}
-              alt={commentAuthor?.name || '用户'}
-              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+              src={authUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`}
+              alt={authUser?.nickname || authUser?.username || '用户'}
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer"
+              onClick={() => navigate('/profile')}
             />
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="发表你的评论..."
-                value={commentInput}
-                onChange={(e) => setCommentInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmitComment()}
-                className="w-full input-clean px-4 py-2.5 rounded-xl text-[13px] pr-12"
-              />
-              <motion.button
-                onClick={handleSubmitComment}
-                disabled={!commentInput.trim()}
-                whileTap={{ scale: 0.95 }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 disabled:opacity-40 transition-colors"
-              >
-                <Send size={16} />
-              </motion.button>
+            <div className="flex-1">
+              {/* 回复提示 */}
+              {replyingTo && (
+                <div className="flex items-center gap-2 mb-1.5 px-3 py-1.5 bg-neutral-50 rounded-lg">
+                  <CornerDownRight size={12} className="text-neutral-400" />
+                  <span className="text-[12px] text-neutral-500">
+                    回复 <span className="font-medium text-neutral-700">{replyingTo.authorName}</span>
+                  </span>
+                  <button
+                    onClick={cancelReply}
+                    className="ml-auto text-neutral-400 hover:text-neutral-600 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              <div className="relative">
+                <input
+                  ref={replyInputRef}
+                  type="text"
+                  placeholder={authUser ? (replyingTo ? `回复 ${replyingTo.authorName}...` : "发表你的评论...") : "请先登录后评论"}
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmitComment()}
+                  disabled={!authUser || isSubmittingComment}
+                  className="w-full input-clean px-4 py-2.5 rounded-xl text-[13px] pr-12 disabled:opacity-50"
+                />
+                <motion.button
+                  onClick={handleSubmitComment}
+                  disabled={!commentInput.trim() || isSubmittingComment || !authUser}
+                  whileTap={{ scale: 0.95 }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 disabled:opacity-40 transition-colors"
+                >
+                  {isSubmittingComment ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Send size={16} />
+                  )}
+                </motion.button>
+              </div>
             </div>
           </div>
 
           {/* 评论列表 */}
-          {audio.comments.length > 0 ? (
-            <div className="space-y-3">
-              {displayedComments.map((comment) => (
-                <motion.div
-                  key={comment.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3"
-                >
-                  <img
-                    src={comment.author.avatar}
-                    alt={comment.author.name}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[13px] font-medium text-neutral-700">{comment.author.name}</span>
-                      <span className="text-[11px] text-neutral-400">{formatDate(comment.createdAt)}</span>
+          {isLoadingComments ? (
+            <div className="py-8 flex justify-center">
+              <Loader2 size={20} className="text-neutral-400 animate-spin" />
+            </div>
+          ) : useBackendComments ? (
+            /* 后端评论列表 */
+            allComments.length > 0 ? (
+              <div className="space-y-4">
+                {displayedComments.map((comment) => (
+                  <motion.div
+                    key={comment._id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    {/* 主评论 */}
+                    <div className="flex gap-3">
+                      <img
+                        src={comment.author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author.username}`}
+                        alt={comment.author.nickname || comment.author.username}
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-neutral-200 transition-all"
+                        onClick={() => handleCommentAuthorClick(comment.author._id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <button
+                            onClick={() => handleCommentAuthorClick(comment.author._id)}
+                            className="text-[13px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                          >
+                            {comment.author.nickname || comment.author.username}
+                          </button>
+                          <span className="text-[11px] text-neutral-400">{formatDate(comment.createdAt)}</span>
+                        </div>
+                        <p className="text-[13px] text-neutral-600 leading-relaxed">{comment.content}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <motion.button
+                            onClick={() => handleLikeComment(comment._id)}
+                            whileTap={{ scale: 0.9 }}
+                            className={`flex items-center gap-1 text-[11px] ${
+                              comment.isLikedByCurrentUser ? 'text-rose-500' : 'text-neutral-400 hover:text-rose-500'
+                            } transition-colors`}
+                          >
+                            <Heart size={12} fill={comment.isLikedByCurrentUser ? 'currentColor' : 'none'} />
+                            {comment.likesCount > 0 && formatNumber(comment.likesCount)}
+                          </motion.button>
+                          {/* 回复按钮 */}
+                          {authUser && (
+                            <motion.button
+                              onClick={() => handleReply(comment._id, comment.author.nickname || comment.author.username)}
+                              whileTap={{ scale: 0.9 }}
+                              className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-neutral-600 transition-colors"
+                            >
+                              <Reply size={12} />
+                              回复
+                            </motion.button>
+                          )}
+                          {/* 删除按钮（仅自己的评论） */}
+                          {comment.author._id === currentUserId && (
+                            <motion.button
+                              onClick={() => handleDeleteComment(comment._id)}
+                              whileTap={{ scale: 0.9 }}
+                              className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 size={11} />
+                              删除
+                            </motion.button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-[13px] text-neutral-600 leading-relaxed">{comment.content}</p>
-                    <motion.button
-                      onClick={() => likeComment(audio.id, comment.id)}
-                      whileTap={{ scale: 0.9 }}
-                      className={`flex items-center gap-1 mt-1.5 text-[11px] ${
-                        comment.isLikedByCurrentUser ? 'text-rose-500' : 'text-neutral-400 hover:text-rose-500'
-                      } transition-colors`}
-                    >
-                      <Heart size={12} fill={comment.isLikedByCurrentUser ? 'currentColor' : 'none'} />
-                      {comment.likes > 0 && formatNumber(comment.likes)}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))}
-              
-              {audio.comments.length > 3 && !showAllComments && (
-                <button
-                  onClick={() => setShowAllComments(true)}
-                  className="w-full py-2 text-[13px] text-neutral-500 hover:text-neutral-700 transition-colors"
-                >
-                  查看全部 {audio.comments.length} 条评论
-                </button>
-              )}
-            </div>
+
+                    {/* 回复列表 */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-11 mt-2 space-y-2.5 pl-3 border-l-2 border-neutral-100">
+                        {comment.replies.map((reply) => (
+                          <motion.div
+                            key={reply._id}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex gap-2.5"
+                          >
+                            <img
+                              src={reply.author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${reply.author.username}`}
+                              alt={reply.author.nickname || reply.author.username}
+                              className="w-6 h-6 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-neutral-200 transition-all"
+                              onClick={() => handleCommentAuthorClick(reply.author._id)}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <button
+                                  onClick={() => handleCommentAuthorClick(reply.author._id)}
+                                  className="text-[12px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                                >
+                                  {reply.author.nickname || reply.author.username}
+                                </button>
+                                <span className="text-[10px] text-neutral-400">{formatDate(reply.createdAt)}</span>
+                              </div>
+                              <p className="text-[12px] text-neutral-600 leading-relaxed">{reply.content}</p>
+                              <div className="flex items-center gap-3 mt-1">
+                                <motion.button
+                                  onClick={() => handleLikeComment(reply._id, comment._id)}
+                                  whileTap={{ scale: 0.9 }}
+                                  className={`flex items-center gap-1 text-[10px] ${
+                                    reply.isLikedByCurrentUser ? 'text-rose-500' : 'text-neutral-400 hover:text-rose-500'
+                                  } transition-colors`}
+                                >
+                                  <Heart size={10} fill={reply.isLikedByCurrentUser ? 'currentColor' : 'none'} />
+                                  {reply.likesCount > 0 && formatNumber(reply.likesCount)}
+                                </motion.button>
+                                {authUser && (
+                                  <motion.button
+                                    onClick={() => handleReply(comment._id, reply.author.nickname || reply.author.username)}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="flex items-center gap-1 text-[10px] text-neutral-400 hover:text-neutral-600 transition-colors"
+                                  >
+                                    <Reply size={10} />
+                                    回复
+                                  </motion.button>
+                                )}
+                                {reply.author._id === currentUserId && (
+                                  <motion.button
+                                    onClick={() => handleDeleteComment(reply._id, comment._id)}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="flex items-center gap-1 text-[10px] text-neutral-400 hover:text-red-500 transition-colors"
+                                  >
+                                    <Trash2 size={10} />
+                                    删除
+                                  </motion.button>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+                
+                {allComments.length > 3 && !showAllComments && (
+                  <button
+                    onClick={() => setShowAllComments(true)}
+                    className="w-full py-2 text-[13px] text-neutral-500 hover:text-neutral-700 transition-colors"
+                  >
+                    查看全部 {commentCount} 条评论
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <p className="text-[13px] text-neutral-400">暂无评论，来抢沙发吧</p>
+              </div>
+            )
           ) : (
-            <div className="py-8 text-center">
-              <p className="text-[13px] text-neutral-400">暂无评论，来抢沙发吧</p>
-            </div>
+            /* 本地评论列表（后备方案） */
+            audio.comments.length > 0 ? (
+              <div className="space-y-3">
+                {localDisplayedComments.map((comment) => (
+                  <motion.div
+                    key={comment.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-3"
+                  >
+                    <img
+                      src={comment.author.avatar}
+                      alt={comment.author.name}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-neutral-200 transition-all"
+                      onClick={() => handleCommentAuthorClick(comment.author.id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <button
+                          onClick={() => handleCommentAuthorClick(comment.author.id)}
+                          className="text-[13px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                        >
+                          {comment.author.name}
+                        </button>
+                        <span className="text-[11px] text-neutral-400">{formatDate(comment.createdAt)}</span>
+                      </div>
+                      <p className="text-[13px] text-neutral-600 leading-relaxed">{comment.content}</p>
+                      <motion.button
+                        onClick={() => useStore.getState().likeComment(audio.id, comment.id)}
+                        whileTap={{ scale: 0.9 }}
+                        className={`flex items-center gap-1 mt-1.5 text-[11px] ${
+                          comment.isLikedByCurrentUser ? 'text-rose-500' : 'text-neutral-400 hover:text-rose-500'
+                        } transition-colors`}
+                      >
+                        <Heart size={12} fill={comment.isLikedByCurrentUser ? 'currentColor' : 'none'} />
+                        {comment.likes > 0 && formatNumber(comment.likes)}
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))}
+                
+                {audio.comments.length > 3 && !showAllComments && (
+                  <button
+                    onClick={() => setShowAllComments(true)}
+                    className="w-full py-2 text-[13px] text-neutral-500 hover:text-neutral-700 transition-colors"
+                  >
+                    查看全部 {audio.comments.length} 条评论
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <p className="text-[13px] text-neutral-400">暂无评论，来抢沙发吧</p>
+              </div>
+            )
           )}
         </motion.div>
       </div>

@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, TrendingUp, Clock, Heart, Grid3x3, List, X, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import AudioCard from '@/components/AudioCard';
 import { useStore } from '@/store';
+import { audioAPI } from '@/services/api';
 import { categoryOptions } from '@/utils';
+import type { HealingAudio } from '@/types';
 
 type SortType = 'trending' | 'newest' | 'popular';
 type LayoutType = 'grid' | 'list';
@@ -15,8 +17,39 @@ const sortOptions = [
   { id: 'popular', label: '最爱', icon: Heart },
 ];
 
+// 将后端音频数据转换为前端格式
+const transformBackendAudio = (audio: any): HealingAudio => ({
+  id: audio._id || audio.id,
+  title: audio.title || '',
+  description: audio.description || '',
+  coverUrl: audio.coverImage || audio.coverUrl || 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80',
+  audioUrl: audio.audioUrl || '',
+  duration: audio.duration || 0,
+  author: {
+    id: audio.creator?._id || audio.creator?.id || audio.author?.id || '',
+    name: audio.creator?.nickname || audio.creator?.username || audio.author?.name || '匿名用户',
+    avatar: audio.creator?.avatar || audio.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=default`,
+    email: '',
+    createdAt: audio.createdAt || new Date().toISOString(),
+  },
+  tags: audio.tags || [],
+  category: audio.category || '',
+  likes: audio.likesCount ?? audio.likes?.length ?? (typeof audio.likes === 'number' ? audio.likes : 0),
+  views: audio.listens || audio.views || 0,
+  comments: [],
+  isPublished: audio.isPublic ?? audio.isPublished ?? true,
+  createdAt: audio.createdAt || new Date().toISOString(),
+  updatedAt: audio.updatedAt || new Date().toISOString(),
+  type: audio.type || 'single',
+  shareText: audio.shareText || '',
+  waveform: audio.waveform,
+  backgroundColor: audio.backgroundColor,
+  commentCount: audio.commentCount || 0,
+  isLikedByCurrentUser: audio.isLikedByCurrentUser || false,
+});
+
 const Community = () => {
-  const { audios } = useStore();
+  const { audios: localAudios } = useStore();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('trending');
@@ -24,9 +57,51 @@ const Community = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
   
+  // 后端数据状态
+  const [backendAudios, setBackendAudios] = useState<HealingAudio[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [useBackend, setUseBackend] = useState(true);
+  const [page] = useState(1);
+  
   // 分类容器 ref 和可见数量计算
   const categoryContainerRef = useRef<HTMLDivElement>(null);
   const [visibleCategoryCount, setVisibleCategoryCount] = useState(categoryOptions.length);
+  
+  // 后端排序映射
+  const sortMap: Record<SortType, string> = {
+    trending: 'trending',
+    newest: 'newest',
+    popular: 'popular',
+  };
+
+  // 从后端获取音频
+  const fetchAudios = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await audioAPI.getAllAudios({
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        search: searchQuery.trim() || undefined,
+        page,
+        limit: 20,
+        sort: sortMap[sortBy],
+      });
+      
+      if (response.success && response.data.audios) {
+        const transformed = response.data.audios.map(transformBackendAudio);
+        setBackendAudios(transformed);
+        setUseBackend(true);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch from backend, using local data:', error);
+      setUseBackend(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCategory, searchQuery, sortBy, page]);
+
+  useEffect(() => {
+    fetchAudios();
+  }, [fetchAudios]);
   
   // 根据容器宽度计算能显示的分类数量
   useEffect(() => {
@@ -34,12 +109,9 @@ const Community = () => {
       if (!categoryContainerRef.current) return;
       
       const containerWidth = categoryContainerRef.current.offsetWidth;
-      // 估算每个标签的平均宽度（px-4 = 16px padding + 文字宽度估算约50px + gap 8px）
       const avgTagWidth = 85;
-      // "更多"按钮宽度约 70px
       const moreButtonWidth = 70;
-      // 可用宽度减去"更多"按钮
-      const availableWidth = containerWidth - moreButtonWidth - 20; // 20px 安全边距
+      const availableWidth = containerWidth - moreButtonWidth - 20;
       
       const count = Math.max(3, Math.floor(availableWidth / avgTagWidth));
       setVisibleCategoryCount(Math.min(count, categoryOptions.length));
@@ -47,10 +119,8 @@ const Community = () => {
     
     calculateVisibleCount();
     
-    // 监听窗口大小变化
     window.addEventListener('resize', calculateVisibleCount);
     
-    // 使用 ResizeObserver 监听容器变化
     const resizeObserver = new ResizeObserver(calculateVisibleCount);
     if (categoryContainerRef.current) {
       resizeObserver.observe(categoryContainerRef.current);
@@ -66,9 +136,9 @@ const Community = () => {
     ? categoryOptions 
     : categoryOptions.slice(0, visibleCategoryCount);
 
-  const filteredAudios = useMemo(() => {
-    // 只显示已发布的音频
-    let result = audios.filter(a => a.isPublished);
+  // 本地数据的过滤逻辑（后备方案）
+  const localFilteredAudios = useMemo(() => {
+    let result = localAudios.filter(a => a.isPublished);
 
     if (selectedCategory !== 'all') {
       result = result.filter(a => a.category === selectedCategory || a.tags.includes(selectedCategory));
@@ -97,7 +167,18 @@ const Community = () => {
     }
 
     return result;
-  }, [audios, selectedCategory, searchQuery, sortBy]);
+  }, [localAudios, selectedCategory, searchQuery, sortBy]);
+
+  const filteredAudios = useBackend ? backendAudios : localFilteredAudios;
+
+  // 音频点赞后更新本地状态
+  const handleAudioLikeUpdate = (audioId: string, liked: boolean) => {
+    setBackendAudios(prev => prev.map(a => 
+      a.id === audioId 
+        ? { ...a, likes: liked ? a.likes + 1 : Math.max(0, a.likes - 1) }
+        : a
+    ));
+  };
 
   return (
     <div className="min-h-screen pb-32">
@@ -262,7 +343,18 @@ const Community = () => {
 
         {/* 音频列表 */}
         <AnimatePresence mode="wait">
-          {filteredAudios.length > 0 ? (
+          {isLoading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <Loader2 size={24} className="text-neutral-400 animate-spin mb-3" />
+              <p className="text-[13px] text-neutral-400">加载中...</p>
+            </motion.div>
+          ) : filteredAudios.length > 0 ? (
             <motion.div 
               key={`${layout}-grid`}
               className={
@@ -280,6 +372,7 @@ const Community = () => {
                   audio={audio} 
                   index={index}
                   layout={layout}
+                  onLikeUpdate={handleAudioLikeUpdate}
                 />
               ))}
             </motion.div>

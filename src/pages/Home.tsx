@@ -370,65 +370,51 @@ const Home = () => {
           <SpotlightOverlay x={smoothX} y={smoothY} />
           
           {/* 内容区 */}
-          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center py-16 sm:py-20">
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center py-4 sm:py-5">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <h1 className="text-[40px] sm:text-[52px] md:text-[64px] font-bold text-neutral-900 leading-tight tracking-tight mb-4">
+              <h1 className="text-[40px] sm:text-[52px] md:text-[64px] font-bold text-neutral-900 leading-tight tracking-tight mb-1">
                 世界吵闹，
                 <br />
                 但你的每声叹息都值得被听见
               </h1>
-              <p className="text-[16px] sm:text-[18px] text-neutral-600/80 mb-10 max-w-2xl mx-auto leading-relaxed">
-                24/7 情绪共振, 是这一刻的温柔出口，也是每一天的生长力量。
+              <p className="text-[16px] sm:text-[18px] text-neutral-600/80 mb-2 max-w-2xl mx-auto leading-relaxed">
+                私人 AI 疗愈师倾听您当下的声音，为您提供每一天生长的力量。
               </p>
             </motion.div>
 
-            {/* 两个入口按钮 */}
+            {/* 向下箭头指示 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex justify-center mt-2"
             >
-              {/* 开始疗愈 - 主按钮 */}
-              <button
+              <motion.button
                 onClick={() => scrollToSection('healing-section')}
-                className="group relative px-8 py-4 bg-neutral-900/95 text-white rounded-full text-[15px] font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 min-w-[180px] overflow-hidden"
+                className="group relative w-12 h-12 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-300 flex items-center justify-center cursor-pointer"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{ 
+                  y: [0, 8, 0],
+                }}
+                transition={{
+                  y: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
               >
-                {/* 渐变光效背景 */}
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-400/20 via-orange-400/20 to-amber-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                {/* 动态光晕 */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute top-0 left-0 w-20 h-20 bg-white/15 rounded-full blur-xl group-hover:animate-pulse" />
-                  <div className="absolute bottom-0 right-0 w-16 h-16 bg-orange-300/15 rounded-full blur-xl group-hover:animate-pulse delay-150" />
-                </div>
-                
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  开启AI疗愈
-                  <Sparkles size={16} className="group-hover:rotate-12 transition-transform duration-300" />
-                </span>
-              </button>
-              
-              {/* 探索社区 - 次按钮 */}
-              <button
-                onClick={() => scrollToSection('community-section')}
-                className="group relative px-8 py-4 bg-white/60 backdrop-blur-xl text-neutral-800 rounded-full text-[15px] font-semibold border-2 border-white/80 hover:border-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 min-w-[180px] overflow-hidden"
-              >
-                {/* 悬停时的渐变背景 */}
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-50/40 via-amber-50/40 to-yellow-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {/* 光晕效果 */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-orange-200/15 via-amber-200/15 to-yellow-200/15 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  发现情绪社区
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
-                </span>
-              </button>
+                <ChevronDown 
+                  size={24} 
+                  className="text-neutral-700 group-hover:text-neutral-900 transition-colors duration-300" 
+                  strokeWidth={2.5}
+                />
+              </motion.button>
             </motion.div>
           </div>
         </div>
@@ -446,8 +432,8 @@ const Home = () => {
           />
         </div>
         
-        {/* 柔和过渡渐变 */}
-        <div className="h-16 bg-gradient-to-b from-[#f0efe8]/20 to-[#f5f5f0]" />
+        {/* 柔和过渡渐变 - 缩短高度 */}
+        <div className="h-0.5 bg-gradient-to-b from-[#f0efe8]/20 to-[#f5f5f0]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
@@ -461,9 +447,9 @@ const Home = () => {
             y: visibleSections.has('healing') ? 0 : 20 
           }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="pt-12 pb-8"
+          className="pt-2 pb-4"
         >
-          <h2 className="text-[32px] font-bold text-neutral-900 leading-tight tracking-tight mb-3 text-center">
+          <h2 className="text-[32px] font-bold text-neutral-900 leading-tight tracking-tight mb-2 text-center">
             两种愈合，只为你而生
           </h2>
           <p className="text-[15px] text-neutral-500 text-center max-w-2xl mx-auto leading-relaxed">
@@ -481,7 +467,7 @@ const Home = () => {
             y: visibleSections.has('cards') ? 0 : 20 
           }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16"
+          className="mb-4"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {healingFeatures.map((feature, index) => (
@@ -671,7 +657,7 @@ const Home = () => {
             scaleX: visibleSections.has('divider') ? 1 : 0 
           }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="h-px bg-gradient-to-r from-transparent via-neutral-200/60 to-transparent my-12"
+          className="h-px bg-gradient-to-r from-transparent via-neutral-200/60 to-transparent my-2"
         />
 
         {/* 音频推荐标题 */}
@@ -684,9 +670,9 @@ const Home = () => {
             y: visibleSections.has('community') ? 0 : 20 
           }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 pt-4"
+          className="mb-4 pt-0"
         >
-          <h2 className="text-[32px] font-bold text-neutral-800 tracking-tight text-center mb-3">于此间，交换温暖的碎片</h2>
+          <h2 className="text-[32px] font-bold text-neutral-800 tracking-tight text-center mb-2">于此间，交换温暖的碎片</h2>
           <p className="text-[15px] text-neutral-500 text-center max-w-2xl mx-auto leading-relaxed">
             探索更多触动心弦的疗愈时刻，<br className="hidden md:block" />
             在分享与倾听中，让每一种体验都拥有温柔的回响。

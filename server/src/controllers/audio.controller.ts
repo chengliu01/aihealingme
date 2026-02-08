@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Audio from '../models/Audio.model.js';
 import User from '../models/User.model.js';
+import Comment from '../models/Comment.model.js';
 import { ApiError } from '../utils/ApiError.js';
 
 // @desc    Create a new audio
@@ -46,7 +47,7 @@ export const createAudio = async (req: Request, res: Response, next: NextFunctio
 // @access  Public
 export const getAllAudios = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { category, search, page = 1, limit = 20 } = req.query;
+    const { category, search, page = 1, limit = 20, sort = 'newest' } = req.query;
     
     const query: any = { isPublic: true };
     
@@ -59,19 +60,49 @@ export const getAllAudios = async (req: Request, res: Response, next: NextFuncti
     }
 
     const skip = (Number(page) - 1) * Number(limit);
+
+    // 排序逻辑
+    let sortOption: any = { createdAt: -1 };
+    if (sort === 'popular') {
+      sortOption = { likes: -1, createdAt: -1 };
+    } else if (sort === 'trending') {
+      sortOption = { listens: -1, createdAt: -1 };
+    }
     
     const audios = await Audio.find(query)
-      .populate('creator', 'username avatar')
-      .sort({ createdAt: -1 })
+      .populate('creator', 'username avatar nickname')
+      .sort(sortOption)
       .skip(skip)
       .limit(Number(limit));
 
     const total = await Audio.countDocuments(query);
 
+    // 获取每个音频的评论数
+    const audioIds = audios.map(a => a._id);
+    const commentCounts = await Comment.aggregate([
+      { $match: { audio: { $in: audioIds } } },
+      { $group: { _id: '$audio', count: { $sum: 1 } } }
+    ]);
+    const commentCountMap = new Map(commentCounts.map(c => [c._id.toString(), c.count]));
+
+    const currentUserId = req.user?.id;
+
+    const audiosWithCounts = audios.map(audio => {
+      const audioObj = audio.toObject();
+      return {
+        ...audioObj,
+        commentCount: commentCountMap.get(audio._id.toString()) || 0,
+        likesCount: audio.likes.length,
+        isLikedByCurrentUser: currentUserId
+          ? audio.likes.some(likeId => likeId.toString() === currentUserId)
+          : false
+      };
+    });
+
     res.json({
       success: true,
       data: {
-        audios,
+        audios: audiosWithCounts,
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -93,7 +124,7 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
     const { id } = req.params;
     
     const audio = await Audio.findById(id)
-      .populate('creator', 'username avatar bio')
+      .populate('creator', 'username avatar bio nickname')
       .populate('likes', 'username avatar');
 
     if (!audio) {
@@ -104,9 +135,24 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
     audio.listens += 1;
     await audio.save();
 
+    // Get comment count
+    const commentCount = await Comment.countDocuments({ audio: id });
+
+    const currentUserId = req.user?.id;
+    const audioObj = audio.toObject();
+
     res.json({
       success: true,
-      data: { audio }
+      data: { 
+        audio: {
+          ...audioObj,
+          commentCount,
+          likesCount: audio.likes.length,
+          isLikedByCurrentUser: currentUserId
+            ? audio.likes.some((likeId: any) => likeId.toString() === currentUserId || likeId._id?.toString() === currentUserId)
+            : false
+        }
+      }
     });
   } catch (error) {
     next(error);
