@@ -12,6 +12,7 @@ export interface IAudio extends Document {
   likes: mongoose.Types.ObjectId[];
   listens: number;
   isPublic: boolean;
+  shareText: string; // 用户分享时附带的输入文本
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +68,11 @@ const audioSchema = new Schema<IAudio>(
     isPublic: {
       type: Boolean,
       default: true
+    },
+    shareText: {
+      type: String,
+      default: '',
+      maxlength: [1000, 'Share text cannot exceed 1000 characters']
     }
   },
   {

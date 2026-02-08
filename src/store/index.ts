@@ -30,7 +30,7 @@ interface AppState {
   updateAudio: (id: string, updates: Partial<HealingAudio>) => void;
   deleteAudio: (id: string) => void;
   toggleFavorite: (audioId: string) => void;
-  publishAudio: (audioId: string, tags?: string[], description?: string) => void;
+  publishAudio: (audioId: string, tags?: string[], description?: string, shareText?: string) => void;
   setCurrentlyPlaying: (audio: HealingAudio | null) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentTime: (time: number) => void;
@@ -376,14 +376,15 @@ export const useStore = create<AppState>()(
           };
         });
       },
-      publishAudio: (audioId, tags, description) => {
+      publishAudio: (audioId, tags, description, shareText) => {
         set((state) => ({
           audios: state.audios.map((a) =>
             a.id === audioId ? { 
               ...a, 
               isPublished: true,
               tags: tags || a.tags,
-              description: description || a.description
+              description: description || a.description,
+              shareText: shareText || a.shareText
             } : a
           ),
           myAudios: state.myAudios.map((a) =>
@@ -391,7 +392,8 @@ export const useStore = create<AppState>()(
               ...a, 
               isPublished: true,
               tags: tags || a.tags,
-              description: description || a.description
+              description: description || a.description,
+              shareText: shareText || a.shareText
             } : a
           ),
         }));

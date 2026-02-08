@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Heart, Music2, Calendar, Play, Headphones, MoreVertical, Edit, Trash2, Globe, Quote, Camera } from 'lucide-react';
+import { Settings, Heart, Music2, Calendar, Play, Headphones, MoreVertical, Edit, Trash2, Globe, Quote, Camera, X, MessageSquare } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
 import { formatDuration, formatNumber, formatDate, audioTagOptions } from '@/utils';
@@ -31,6 +31,11 @@ const Profile = () => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [selectedFavoriteTag, setSelectedFavoriteTag] = useState<string>('all');
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  // 发布弹窗状态
+  const [publishDialogAudioId, setPublishDialogAudioId] = useState<string | null>(null);
+  const [includeShareText, setIncludeShareText] = useState(true);
+  const publishingAudio = publishDialogAudioId ? myAudios.find(a => a.id === publishDialogAudioId) : null;
 
   // 获取收藏中实际存在的标签
   const favoriteTags = useMemo(() => {
@@ -338,7 +343,8 @@ const Profile = () => {
                             {!audio.isPublished && (
                               <button
                                 onClick={() => {
-                                  publishAudio(audio.id);
+                                  setPublishDialogAudioId(audio.id);
+                                  setIncludeShareText(true);
                                   setShowActionsMenu(null);
                                 }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -527,6 +533,113 @@ const Profile = () => {
           ))}
         </motion.div>
       </div>
+
+      {/* 发布确认弹窗 */}
+      <AnimatePresence>
+        {publishDialogAudioId && publishingAudio && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPublishDialogAudioId(null)}
+              className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[101] max-w-md mx-auto bg-white rounded-3xl p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[17px] font-semibold text-neutral-800">发布到社区</h3>
+                <button
+                  onClick={() => setPublishDialogAudioId(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* 音频预览 */}
+              <div className="flex gap-3 p-3 bg-neutral-50 rounded-2xl mb-5">
+                <img
+                  src={publishingAudio.coverUrl}
+                  alt={publishingAudio.title}
+                  className="w-14 h-14 rounded-xl object-cover"
+                />
+                <div className="flex-1 min-w-0 py-0.5">
+                  <h4 className="text-[14px] font-medium text-neutral-800 truncate">{publishingAudio.title}</h4>
+                  <p className="text-[12px] text-neutral-400 mt-0.5">{formatDuration(publishingAudio.duration)}</p>
+                </div>
+              </div>
+
+              {/* 分享输入文本选项 */}
+              {publishingAudio.description && (
+                <div className="mb-5">
+                  <button
+                    onClick={() => setIncludeShareText(!includeShareText)}
+                    className="flex items-center gap-3 w-full p-3 rounded-2xl border border-black/[0.06] hover:bg-neutral-50 transition-all"
+                  >
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                      includeShareText ? 'bg-neutral-900 border-neutral-900' : 'border-neutral-300'
+                    }`}>
+                      {includeShareText && (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-[13px] font-medium text-neutral-700 flex items-center gap-1.5">
+                        <MessageSquare size={14} />
+                        附带我的输入描述
+                      </p>
+                      <p className="text-[11px] text-neutral-400 mt-0.5">其他用户将看到你生成音频时的描述</p>
+                    </div>
+                  </button>
+                  
+                  {includeShareText && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2 px-4 py-3 bg-neutral-50 rounded-xl text-[12px] text-neutral-500 leading-relaxed line-clamp-4"
+                    >
+                      "{publishingAudio.description}"
+                    </motion.div>
+                  )}
+                </div>
+              )}
+
+              {/* 操作按钮 */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPublishDialogAudioId(null)}
+                  className="flex-1 py-3 text-[14px] font-medium text-neutral-600 bg-neutral-100 rounded-2xl hover:bg-neutral-200 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={() => {
+                    publishAudio(
+                      publishDialogAudioId,
+                      undefined,
+                      undefined,
+                      includeShareText ? publishingAudio.description : ''
+                    );
+                    setPublishDialogAudioId(null);
+                  }}
+                  className="flex-1 py-3 text-[14px] font-medium text-white bg-neutral-900 rounded-2xl hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Globe size={16} />
+                  确认发布
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

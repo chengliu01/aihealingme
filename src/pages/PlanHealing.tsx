@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { formatDuration } from '@/utils';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import {
   emotionOptions, scenarioOptions, generateId,
   bodySensationOptions, healingGoalOptions, emotionDurationOptions,
@@ -159,6 +160,16 @@ function generatePlanStages() {
 const PlanHealing = () => {
   const navigate = useNavigate();
   const { currentUser, addPlan, addAudio } = useStore();
+  const { user: authUser } = useAuthStore();
+
+  // 优先使用登录用户信息，否则使用 mock 用户（向后兼容）
+  const actualUser: import('@/types').User = authUser ? {
+    id: (authUser as any)._id || (authUser as any).id || 'unknown',
+    name: authUser.nickname || authUser.username || '匿名用户',
+    avatar: authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.username || 'default'}`,
+    email: authUser.email || '',
+    createdAt: new Date().toISOString(),
+  } : currentUser!;
 
   // Flow
   const [flowStep, setFlowStep] = useState<FlowStep>('prefill');
@@ -324,7 +335,7 @@ const PlanHealing = () => {
       coverUrl: stageCoverUrls[i % stageCoverUrls.length],
       audioUrl: '',
       duration: s.duration,
-      author: currentUser!,
+      author: actualUser,
       tags: ['疗愈计划', ...s.techniques],
       category: '冥想',
       likes: 0, views: 0, comments: [],

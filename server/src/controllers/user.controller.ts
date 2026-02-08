@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/User.model.js';
+import Audio from '../models/Audio.model.js';
 import { ApiError } from '../utils/ApiError.js';
 
 // @desc    Get user profile
@@ -8,21 +9,59 @@ import { ApiError } from '../utils/ApiError.js';
 export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const currentUserId = req.user?.id;
+    const isOwnProfile = currentUserId === id;
     
     const user = await User.findById(id)
-      .populate('createdAudios', 'title coverImage duration likes listens')
-      .populate('favoriteAudios', 'title coverImage duration')
-      .populate('followers', 'username avatar')
-      .populate('following', 'username avatar');
+      .populate('followers', 'username avatar nickname')
+      .populate('following', 'username avatar nickname');
 
     if (!user) {
       throw new ApiError(404, 'User not found');
     }
 
-    res.json({
-      success: true,
-      data: { user }
-    });
+    // 获取该用户的公开音频
+    const publicAudios = await Audio.find({ creator: id, isPublic: true })
+      .populate('creator', 'username avatar nickname')
+      .sort({ createdAt: -1 });
+
+    if (isOwnProfile) {
+      // 自己的主页：返回全部信息
+      const allAudios = await Audio.find({ creator: id })
+        .populate('creator', 'username avatar nickname')
+        .sort({ createdAt: -1 });
+      
+      res.json({
+        success: true,
+        data: { 
+          user,
+          audios: allAudios,
+          isOwnProfile: true
+        }
+      });
+    } else {
+      // 他人的主页：只返回公开信息
+      res.json({
+        success: true,
+        data: { 
+          user: {
+            _id: user._id,
+            username: user.username,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            bio: user.bio,
+            motto: user.motto,
+            lifeStage: user.lifeStage,
+            healingPreference: user.healingPreference,
+            followers: user.followers,
+            following: user.following,
+            createdAt: user.createdAt,
+          },
+          audios: publicAudios,
+          isOwnProfile: false
+        }
+      });
+    }
   } catch (error) {
     next(error);
   }

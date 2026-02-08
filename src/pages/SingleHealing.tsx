@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { formatDuration } from '@/utils';
 import { useStore } from '@/store';
+import { useAuthStore } from '@/store/authStore';
 import {
   emotionOptions, scenarioOptions, generateId,
   bodySensationOptions, healingGoalOptions,
@@ -78,7 +79,7 @@ function buildGreeting(
   // 但在实际 API 调用中会一并发送
   void extras;
 
-  greeting += '\n\n在为你生成音频之前，我想再了解你多一点——你能跟我说说，最近发生了什么让你有这些感受的吗？不需要很详细，几句话就好。';
+  greeting += '\n\n请在下方详细描述一下你的情况和需求，我会为你量身定制一段疗愈音频。你可以说说最近发生了什么、具体的困扰、或者希望得到怎样的帮助。';
 
   return [{
     id: generateId(),
@@ -94,23 +95,8 @@ function buildGreeting(
   }];
 }
 
-// 模拟 AI 多轮对话回复
-const AI_FOLLOW_UPS: Array<{
-  content: string;
-  quickReplies?: string[];
-}> = [
-  {
-    content: '谢谢你的分享，我能感受到这对你来说并不容易。\n\n你有没有注意到，在这种情绪出现的时候，身体上有什么感觉？比如胸口发紧、呼吸变浅、或者身体很沉重？',
-    quickReplies: ['胸口总是闷闷的', '头有点疼或发胀', '身体很疲惫沉重', '没什么特别的身体感觉'],
-  },
-  {
-    content: '了解了。身心是互相连接的，这些身体信号也在提醒你需要被关照。\n\n最后一个问题：你希望这段疗愈音频用什么样的方式来陪伴你？',
-    quickReplies: ['温柔的引导，帮我放松下来', '专注呼吸，让思绪安静', '给我一些安慰和力量', '带我做一次身体放松'],
-  },
-  {
-    content: '好的，我已经很好地理解了你此刻的状态和需求。让我为你定制一段专属的疗愈音频吧。\n\n点击下方的「生成」按钮，我会根据你的情况为你选择最合适的时长。准备好了吗？✨',
-  },
-];
+// AI 单次回复（用户输入后的确认消息）
+const AI_CONFIRMATION = '谢谢你的分享，我能感受到这对你来说并不容易。\n\n基于你告诉我的这些信息，我已经了解了你此刻的状态和需求。我会结合你选择的情绪、强度和你刚才的描述，为你量身定制一段专属的疗愈音频。\n\n点击下方的「生成」按钮，开始你的疗愈之旅吧 ✨';
 
 // AI 根据情绪强度和对话内容决定时长（秒）
 function determineDuration(intensity: number, messageCount: number): number {
@@ -127,6 +113,16 @@ function determineDuration(intensity: number, messageCount: number): number {
 const SingleHealing = () => {
   const navigate = useNavigate();
   const { currentUser, addAudio } = useStore();
+  const { user: authUser } = useAuthStore();
+
+  // 优先使用登录用户信息，否则使用 mock 用户（向后兼容）
+  const actualUser: import('@/types').User = authUser ? {
+    id: (authUser as any)._id || (authUser as any).id || 'unknown',
+    name: authUser.nickname || authUser.username || '匿名用户',
+    avatar: authUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.username || 'default'}`,
+    email: authUser.email || '',
+    createdAt: new Date().toISOString(),
+  } : currentUser!;
 
   // Flow
   const [flowStep, setFlowStep] = useState<FlowStep>('prefill');
@@ -149,9 +145,9 @@ const SingleHealing = () => {
   // Chat state
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState('');
-  const [aiRound, setAiRound] = useState(0);
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [canGenerate, setCanGenerate] = useState(false); // 用户发送过消息后可生成
+  const [hasUserReplied, setHasUserReplied] = useState(false); // 用户是否已回复（单次交互）
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -215,7 +211,7 @@ const SingleHealing = () => {
   };
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || hasUserReplied) return; // 用户只能发送一次消息
 
     const userMsg: ChatMsg = {
       id: generateId(),
@@ -226,29 +222,27 @@ const SingleHealing = () => {
     setChatMessages(prev => [...prev, userMsg]);
     setChatInput('');
     setIsAiTyping(true);
-    setCanGenerate(true); // 用户发送消息后可以生成
+    setHasUserReplied(true); // 标记用户已回复
 
     // Simulate AI thinking
     await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
 
-    const nextRound = aiRound;
-    if (nextRound < AI_FOLLOW_UPS.length) {
-      const followUp = AI_FOLLOW_UPS[nextRound];
-      const aiMsg: ChatMsg = {
-        id: generateId(),
-        role: 'ai',
-        content: followUp.content,
-        timestamp: Date.now(),
-        quickReplies: followUp.quickReplies,
-      };
-      setChatMessages(prev => [...prev, aiMsg]);
-      setAiRound(nextRound + 1);
-    }
+    // AI 给出确认回复
+    const aiMsg: ChatMsg = {
+      id: generateId(),
+      role: 'ai',
+      content: AI_CONFIRMATION,
+      timestamp: Date.now(),
+    };
+    setChatMessages(prev => [...prev, aiMsg]);
+    setCanGenerate(true); // AI 回复后才显示生成按钮
     setIsAiTyping(false);
   };
 
   const handleQuickReply = (text: string) => {
-    handleSendMessage(text);
+    if (!hasUserReplied) {
+      handleSendMessage(text);
+    }
   };
 
   const handleGenerate = async () => {
@@ -274,7 +268,7 @@ const SingleHealing = () => {
       coverUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80',
       audioUrl: '',
       duration: aiDeterminedDuration,
-      author: currentUser!,
+      author: actualUser,
       tags: emotionLabels,
       category: emotionLabels[0] || '冥想',
       likes: 0,
@@ -578,11 +572,17 @@ const SingleHealing = () => {
               {/* Avatar + Bubble */}
               <div className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-[12px]
-                  ${msg.role === 'ai' ? 'bg-neutral-900 text-white' : 'bg-neutral-200 text-neutral-600'}`}
-                >
-                  {msg.role === 'ai' ? <Sparkles size={14} /> : '我'}
-                </div>
+                {msg.role === 'ai' ? (
+                  <div className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center bg-neutral-900 text-white">
+                    <Sparkles size={14} />
+                  </div>
+                ) : (
+                  <img 
+                    src={currentUser?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} 
+                    alt="我的头像"
+                    className="w-8 h-8 rounded-xl shrink-0 object-cover"
+                  />
+                )}
                 {/* Bubble */}
                 <div className={`
                   px-4 py-3 rounded-2xl text-[14px] leading-relaxed whitespace-pre-line
@@ -595,8 +595,8 @@ const SingleHealing = () => {
                 </div>
               </div>
 
-              {/* Quick Replies */}
-              {msg.role === 'ai' && msg.quickReplies && idx === chatMessages.length - 1 && !isAiTyping && (
+              {/* Quick Replies - 仅在用户未回复时显示 */}
+              {msg.role === 'ai' && msg.quickReplies && idx === chatMessages.length - 1 && !isAiTyping && !hasUserReplied && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -664,38 +664,38 @@ const SingleHealing = () => {
         <div ref={chatEndRef} />
       </div>
 
-      {/* 输入框 */}
-      <div className="shrink-0 pt-3 pb-2 border-t border-black/[0.04]">
-        <div className="flex items-end gap-3">
-          <div className="flex-1 relative">
-            <textarea
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(chatInput);
-                }
-              }}
-              placeholder={isAiTyping ? 'AI 正在思考...' : '说说你的感受...'}
-              disabled={isAiTyping}
-              rows={1}
-              className="w-full px-4 py-3 bg-white/70 border border-black/[0.06] rounded-2xl text-[14px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-black/[0.1] transition-all duration-200 resize-none disabled:opacity-60"
-            />
+      {/* 输入框 - 仅在用户未回复时显示 */}
+      {!hasUserReplied && (
+        <div className="shrink-0 pt-3 pb-2 border-t border-black/[0.04]">
+          <div className="flex items-end gap-3">
+            <div className="flex-1 relative">
+              <textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(chatInput);
+                  }
+                }}
+                placeholder={isAiTyping ? 'AI 正在思考...' : '详细描述你的情况和需求...'}
+                disabled={isAiTyping}
+                rows={3}
+                className="w-full px-4 py-3 bg-white/70 border border-black/[0.06] rounded-2xl text-[14px] text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-black/[0.1] transition-all duration-200 resize-none disabled:opacity-60"
+              />
+            </div>
+            <motion.button
+              onClick={() => handleSendMessage(chatInput)}
+              disabled={!chatInput.trim() || isAiTyping}
+              whileTap={{ scale: 0.94 }}
+              className="w-11 h-11 rounded-xl bg-neutral-900 text-white flex items-center justify-center disabled:opacity-40 transition-all shrink-0"
+            >
+              <Send size={16} />
+            </motion.button>
           </div>
-          <motion.button
-            onClick={() => handleSendMessage(chatInput)}
-            disabled={!chatInput.trim() || isAiTyping}
-            whileTap={{ scale: 0.94 }}
-            className="w-11 h-11 rounded-xl bg-neutral-900 text-white flex items-center justify-center disabled:opacity-40 transition-all shrink-0"
-          >
-            <Send size={16} />
-          </motion.button>
+          <p className="text-center text-[10px] text-neutral-300 mt-2">描述你的情况，AI 会为你定制专属疗愈方案</p>
         </div>
-        {!canGenerate && (
-          <p className="text-center text-[10px] text-neutral-300 mt-2">和 AI 聊聊，它会为你定制最合适的疗愈方案</p>
-        )}
-      </div>
+      )}
     </motion.div>
   );
 

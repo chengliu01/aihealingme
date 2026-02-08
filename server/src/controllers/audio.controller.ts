@@ -9,7 +9,7 @@ import { ApiError } from '../utils/ApiError.js';
 export const createAudio = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
-    const { title, description, audioUrl, coverImage, duration, category, tags, isPublic } = req.body;
+    const { title, description, audioUrl, coverImage, duration, category, tags, isPublic, shareText } = req.body;
 
     const audio = await Audio.create({
       title,
@@ -20,7 +20,8 @@ export const createAudio = async (req: Request, res: Response, next: NextFunctio
       category,
       tags,
       creator: userId,
-      isPublic
+      isPublic,
+      shareText: shareText || ''
     });
 
     // Add to user's created audios
@@ -119,7 +120,7 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const { title, description, coverImage, category, tags, isPublic } = req.body;
+    const { title, description, coverImage, category, tags, isPublic, shareText } = req.body;
 
     const audio = await Audio.findById(id);
     if (!audio) {
@@ -137,6 +138,7 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
     if (category) audio.category = category;
     if (tags) audio.tags = tags;
     if (isPublic !== undefined) audio.isPublic = isPublic;
+    if (shareText !== undefined) audio.shareText = shareText;
 
     await audio.save();
 

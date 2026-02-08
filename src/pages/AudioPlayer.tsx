@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Heart, Play, Pause, SkipBack, SkipForward,
-  Send, MessageCircle, Share2, X, Check
+  Send, MessageCircle, Share2, X, Check, MessageSquare
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAuthStore } from '@/store/authStore';
@@ -46,8 +46,9 @@ const AudioPlayer = () => {
   } : currentUser;
   const isFavorite = favoriteAudios.some(a => a.id === id);
   
-  // 检查是否是当前用户的音频
-  const isMyAudio = audio && currentUser && audio.author.id === currentUser.id;
+  // 检查是否是当前用户的音频（优先使用 authUser 的 ID）
+  const currentUserId = authUser ? ((authUser as any)._id || (authUser as any).id) : currentUser?.id;
+  const isMyAudio = audio && currentUserId && audio.author.id === currentUserId;
   const canPublish = isMyAudio && !audio?.isPublished;
   
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -60,6 +61,7 @@ const AudioPlayer = () => {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishTags, setPublishTags] = useState<string[]>(audio?.tags || []);
   const [publishDescription, setPublishDescription] = useState(audio?.description || '');
+  const [includeShareText, setIncludeShareText] = useState(false);
   useEffect(() => {
     if (audio && currentlyPlaying?.id !== audio.id) {
       setCurrentlyPlaying(audio);
@@ -112,7 +114,7 @@ const AudioPlayer = () => {
   
   const handleConfirmPublish = () => {
     if (audio && canPublish) {
-      publishAudio(audio.id, publishTags, publishDescription);
+      publishAudio(audio.id, publishTags, publishDescription, includeShareText ? audio.description : '');
       setShowPublishModal(false);
     }
   };
@@ -216,11 +218,37 @@ const AudioPlayer = () => {
                   ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100' 
                   : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
               }`}>
-                {audio.isPublished ? '已发布' : '草稿'}
+                {audio.isPublished ? '已发布' : '私密'}
               </span>
             )}
           </div>
-          <p className="text-[14px] text-neutral-400">{audio.author.name}</p>
+          <button
+            onClick={() => {
+              if (isMyAudio) {
+                navigate('/profile');
+              } else {
+                navigate(`/user/${audio.author.id}`);
+              }
+            }}
+            className="flex items-center justify-center gap-2 mt-1 group cursor-pointer"
+          >
+            <img
+              src={audio.author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${audio.author.name}`}
+              alt={audio.author.name}
+              className="w-7 h-7 rounded-full object-cover ring-1 ring-black/[0.06]"
+            />
+            <span className="text-[14px] text-neutral-400 group-hover:text-neutral-600 transition-colors">
+              {audio.author.name}
+            </span>
+          </button>
+          {audio.shareText && (
+            <div className="mt-3 mx-auto max-w-md">
+              <div className="flex items-start gap-2 px-4 py-3 bg-neutral-50/80 rounded-2xl border border-black/[0.04]">
+                <MessageSquare size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                <p className="text-[13px] text-neutral-500 leading-relaxed text-left">{audio.shareText}</p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* 波形 */}
@@ -544,6 +572,29 @@ const AudioPlayer = () => {
                   )}
                 </div>
                 
+                {/* 附带输入文案 */}
+                {audio?.description && (
+                  <div className="mb-6">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeShareText}
+                        onChange={(e) => setIncludeShareText(e.target.checked)}
+                        className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
+                      />
+                      <span className="text-[14px] font-medium text-neutral-700">附带我的输入文案</span>
+                    </label>
+                    {includeShareText && (
+                      <div className="mt-3 px-4 py-3 bg-neutral-50 rounded-xl border border-black/[0.06]">
+                        <div className="flex items-start gap-2">
+                          <MessageSquare size={14} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-[13px] text-neutral-500 leading-relaxed">{audio.description}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* 文案输入 */}
                 <div>
                   <label className="block text-[14px] font-medium text-neutral-700 mb-3">

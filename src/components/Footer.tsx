@@ -1,4 +1,5 @@
-import { Instagram, Facebook, MessageCircle, Twitter, Youtube } from 'lucide-react';
+import { MessageCircle, LucideIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -8,16 +9,32 @@ const Footer = () => {
   const icpText = 'ICP备案号：待补充';
   const icpHref = 'https://beian.miit.gov.cn/';
 
-  const socialLinks = [
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: MessageCircle, href: '#', label: 'WeChat' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Youtube, href: '#', label: 'Youtube' },
+  const socialLinks: Array<
+    | { type: 'svg'; href: string; label: string; svg: ReactNode }
+    | { type: 'text'; href: string; label: string; text: string }
+    | { type: 'icon'; icon: LucideIcon; href: string; label: string }
+  > = [
+    { 
+      type: 'svg', 
+      href: '#', 
+      label: '小红书',
+      svg: (
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.615 14.154h-2.77v-3.077h-3.69v3.077H7.385V7.846h2.77v3.077h3.69V7.846h2.77v8.308z"/>
+        </svg>
+      )
+    },
+    { type: 'icon', icon: MessageCircle, href: '#', label: '微信公众号' },
+    { 
+      type: 'text', 
+      href: '#', 
+      label: 'X',
+      text: '𝕏'
+    },
   ];
 
   return (
-    <footer className="relative z-10 mt-auto pb-32 bg-[#E5E0DA]">
+    <footer className="relative z-10 mt-auto bg-[#E5E0DA]">
       <div className="max-w-7xl mx-auto px-0.5 sm:px-2 md:px-3 py-12">
         {/* 顶部区域：品牌 + 社交媒体 | 联系信息 */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-10">
@@ -31,8 +48,15 @@ const Footer = () => {
                   href={social.href}
                   className="w-9 h-9 rounded-full border border-neutral-400/40 flex items-center justify-center text-neutral-500 hover:text-neutral-700 hover:border-neutral-500 transition-all duration-200"
                   aria-label={social.label}
+                  title={social.label}
                 >
-                  <social.icon size={16} strokeWidth={1.5} />
+                  {social.type === 'svg' ? (
+                    social.svg
+                  ) : social.type === 'text' ? (
+                    <span className="text-sm font-bold">{social.text}</span>
+                  ) : social.type === 'icon' ? (
+                    <social.icon size={16} strokeWidth={1.5} />
+                  ) : null}
                 </a>
               ))}
             </div>

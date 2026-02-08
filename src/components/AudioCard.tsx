@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Play, Pause, Headphones, MessageCircle, Clock } from 'lucide-react';
+import { Heart, Play, Pause, Headphones, MessageCircle, Clock, MessageSquare } from 'lucide-react';
 import type { HealingAudio } from '@/types';
 import { formatDuration, formatNumber, formatDate, audioTagOptions } from '@/utils';
 import { useStore } from '@/store';
@@ -13,6 +13,7 @@ interface AudioCardProps {
 }
 
 const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
+  const navigate = useNavigate();
   const { 
     currentlyPlaying, 
     isPlaying, 
@@ -40,6 +41,12 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
       setCurrentlyPlaying(audio);
       setIsPlaying(true);
     }
+  };
+
+  const handleAuthorClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/user/${audio.author.id}`);
   };
 
   const handleLike = (e: React.MouseEvent) => {
@@ -117,17 +124,30 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
               {audio.title}
             </h3>
             
-            {/* 作者 */}
-            <div className="flex items-center gap-2 mb-2">
+            {/* 作者 - 可点击 */}
+            <button
+              onClick={handleAuthorClick}
+              className="flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity"
+            >
               <img 
                 src={audio.author.avatar} 
                 alt={audio.author.name}
                 className="w-5 h-5 rounded-full object-cover"
               />
-              <span className="text-[12px] text-neutral-500">
+              <span className="text-[12px] text-neutral-500 hover:text-neutral-700 transition-colors">
                 {audio.author.name}
               </span>
-            </div>
+            </button>
+
+            {/* 分享附带文本 */}
+            {audio.shareText && (
+              <div className="flex items-start gap-1.5 mb-2 px-2.5 py-2 bg-neutral-50 rounded-lg">
+                <MessageSquare size={12} className="text-neutral-300 mt-0.5 shrink-0" />
+                <p className="text-[11px] text-neutral-500 leading-relaxed line-clamp-2">
+                  {audio.shareText}
+                </p>
+              </div>
+            )}
             
             {/* 标签 */}
             <div className="flex flex-wrap gap-1.5 mb-2">
@@ -282,20 +302,35 @@ const AudioCard = ({ audio, index = 0, layout = 'grid' }: AudioCardProps) => {
         <h3 className="font-semibold text-[14px] text-neutral-900 leading-snug line-clamp-2 mb-1.5 group-hover:text-slate-700 transition-colors">
           {audio.title}
         </h3>
+      </Link>
         
-        {/* 作者信息 */}
-        <div className="flex items-center gap-1.5 mb-2">
-          <img 
-            src={audio.author.avatar} 
-            alt={audio.author.name}
-            className="w-4 h-4 rounded-full object-cover"
-          />
-          <p className="text-[11px] text-neutral-500 truncate">
-            {audio.author.name}
+      {/* 作者信息 - 可点击跳转主页 */}
+      <button
+        onClick={handleAuthorClick}
+        className="flex items-center gap-1.5 mb-2 hover:opacity-80 transition-opacity"
+      >
+        <img 
+          src={audio.author.avatar} 
+          alt={audio.author.name}
+          className="w-4 h-4 rounded-full object-cover"
+        />
+        <p className="text-[11px] text-neutral-500 truncate hover:text-neutral-700 transition-colors">
+          {audio.author.name}
+        </p>
+      </button>
+
+      {/* 分享附带文本 */}
+      {audio.shareText && (
+        <div className="flex items-start gap-1 mb-2 px-2 py-1.5 bg-neutral-50 rounded-lg">
+          <MessageSquare size={10} className="text-neutral-300 mt-0.5 shrink-0" />
+          <p className="text-[10px] text-neutral-500 leading-relaxed line-clamp-2">
+            {audio.shareText}
           </p>
         </div>
+      )}
         
-        {/* 标签 */}
+      {/* 标签 */}
+      <Link to={`/audio/${audio.id}`} className="block">
         <div className="flex flex-wrap gap-1">
           {audio.tags.slice(0, 2).map((tag, i) => {
             const { label, icon } = getTagDisplay(tag);

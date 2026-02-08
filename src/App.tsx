@@ -13,6 +13,7 @@ import PlanHealing from '@/pages/PlanHealing';
 import PlanDetail from '@/pages/PlanDetail';
 import Onboarding from '@/pages/Onboarding';
 import Settings from '@/pages/Settings';
+import UserProfile from '@/pages/UserProfile';
 import { useAuthStore } from '@/store/authStore';
 
 // Guard: redirect to onboarding if not completed
@@ -58,6 +59,7 @@ function App() {
             <Route path="create/plan" element={<PlanHealing />} />
             <Route path="plan/:id" element={<PlanDetail />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="user/:id" element={<UserProfile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="audio/:id" element={<AudioPlayer />} />
             {/* 为了兼容，保留旧的视频路由重定向 */}

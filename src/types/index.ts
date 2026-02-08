@@ -29,6 +29,7 @@ export interface HealingAudio {
   // 音频特有属性
   waveform?: number[];  // 音频波形数据
   backgroundColor?: string;  // 主题背景色
+  shareText?: string;  // 分享时用户附带的输入文本
 }
 
 // 为了兼容，保留别名

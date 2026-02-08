@@ -119,7 +119,7 @@ export const userAPI = {
   getUserProfile: async (userId: string) => {
     return apiRequest<{
       success: boolean;
-      data: { user: any };
+      data: { user: any; audios: any[]; isOwnProfile: boolean };
     }>(`/users/${userId}`);
   },
 
@@ -212,6 +212,7 @@ export const audioAPI = {
     category: string;
     tags?: string[];
     isPublic?: boolean;
+    shareText?: string;
   }) => {
     return apiRequest<{
       success: boolean;
@@ -266,6 +267,7 @@ export const audioAPI = {
       category?: string;
       tags?: string[];
       isPublic?: boolean;
+      shareText?: string;
     }
   ) => {
     return apiRequest<{
